@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>엔티제컴퍼니 · 작업 대시보드</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- 외부 라이브러리는 절대경로 미사용 / 상대경로 또는 완전한 URL만 사용 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 <style>
   :root{
@@ -19,20 +20,19 @@
     --primary:#6366f1; --primary-light:#818cf8; --green:#16a34a; --red:#dc2626; --amber:#d97706;
     --shadow:0 10px 40px rgba(0,0,0,0.08);
   }
+
+  /* 리셋/안정화 */
   *{box-sizing:border-box; margin:0; padding:0}
-  html,body{max-width:100%; overflow-x:hidden}
-  body{
-    background:var(--bg); color:var(--text);
-    font-family:'Pretendard',-apple-system,system-ui,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;
-    line-height:1.6;
-  }
-  img,canvas,svg,video{max-width:100%; height:auto}
+  html,body{max-width:100%; overflow-x:hidden; background:var(--bg); color:var(--text)}
+  body{font-family:'Pretendard',-apple-system,system-ui,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif; line-height:1.6}
+  img,canvas,svg,video{max-width:100%; height:auto; display:block}
+
   .wrap{max-width:1400px; margin:0 auto; padding:24px; display:grid; gap:20px}
 
   header{
     background:var(--panel); border:1px solid var(--border); border-radius:20px;
     padding:24px 32px; box-shadow:var(--shadow); display:flex;
-    align-items:center; justify-content:space-between; position:relative; overflow:hidden;
+    align-items:center; justify-content:space-between; position:relative; overflow:hidden
   }
   header::before{content:''; position:absolute; top:0; left:0; right:0; height:4px; background:var(--gradient-1)}
   .brand{display:flex; align-items:center; gap:16px}
@@ -41,49 +41,46 @@
   .chip{background:var(--chip); border:1px solid var(--border); color:var(--primary-light);
     padding:6px 14px; border-radius:999px; font-size:12px; font-weight:600}
 
-  .btn{background:var(--primary); color:white; border:none; padding:10px 20px;
+  .btn{background:var(--primary); color:#fff; border:none; padding:10px 20px;
     border-radius:12px; cursor:pointer; font-weight:600; font-size:14px;
-    transition:all 0.3s; box-shadow:0 4px 12px rgba(99,102,241,0.3)}
+    transition:all .3s; box-shadow:0 4px 12px rgba(99,102,241,.3)}
   .btn:hover{background:var(--primary-light); transform:translateY(-2px)}
   .btn.outline{background:transparent; color:var(--text); border:2px solid var(--border); box-shadow:none}
-  .btn.outline:hover{border-color:var(--primary); color:var(--primary); background:rgba(99,102,241,0.1)}
+  .btn.outline:hover{border-color:var(--primary); color:var(--primary); background:rgba(99,102,241,.08)}
   .btn.danger{background:#ef4444}
   .btn.small{padding:8px 14px; font-size:13px}
 
   .panel{background:var(--panel); border:1px solid var(--border); border-radius:20px; box-shadow:var(--shadow); overflow:hidden}
   .panel .h{padding:20px 28px; border-bottom:1px solid var(--border); display:flex;
-    align-items:center; justify-content:space-between; background:linear-gradient(to right, rgba(99,102,241,0.05), transparent)}
+    align-items:center; justify-content:space-between; background:linear-gradient(to right, rgba(99,102,241,.05), transparent)}
   .panel .h strong{font-size:18px; font-weight:700}
   .panel .b{padding:24px 28px}
 
-  .filters{display:grid; grid-template-columns:1.4fr repeat(3,1fr) 0.9fr 1fr; gap:12px}
+  .filters{display:grid; grid-template-columns:1.4fr repeat(3,1fr) .9fr 1fr; gap:12px}
   @media (max-width:1100px){.filters{grid-template-columns:1fr 1fr}}
 
   .filter-input-wrapper{position:relative}
   input, select{width:100%; padding:12px 16px; border-radius:12px; border:2px solid var(--border);
-    background:var(--card); color:var(--text); font-size:14px; font-weight:500; transition:all 0.3s}
-  input:focus, select:focus{outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(99,102,241,0.1)}
+    background:var(--card); color:var(--text); font-size:14px; font-weight:500; transition:all .3s}
+  input:focus, select:focus{outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(99,102,241,.1)}
 
   .autocomplete-dropdown{position:absolute; top:100%; left:0; right:0; background:var(--panel);
     border:2px solid var(--border); border-radius:12px; margin-top:4px; max-height:250px;
     overflow-y:auto; z-index:100; box-shadow:var(--shadow); display:none}
   .autocomplete-dropdown.active{display:block}
-  .autocomplete-item{padding:10px 16px; cursor:pointer; display:flex; align-items:center;
-    justify-content:space-between; transition:all 0.2s; border-bottom:1px solid var(--border)}
+  .autocomplete-item{padding:10px 16px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all .2s; border-bottom:1px solid var(--border)}
   .autocomplete-item:last-child{border-bottom:none}
   .autocomplete-item:hover{background:var(--card2)}
   .autocomplete-text{flex:1; font-size:14px}
-  .autocomplete-delete{width:20px; height:20px; border-radius:50%; background:transparent;
-    color:var(--muted); border:none; cursor:pointer; font-size:16px; opacity:0; transition:all 0.2s}
+  .autocomplete-delete{width:20px; height:20px; border-radius:50%; background:transparent; color:var(--muted); border:none; cursor:pointer; font-size:16px; opacity:0; transition:all .2s}
   .autocomplete-item:hover .autocomplete-delete{opacity:1}
-  .autocomplete-delete:hover{background:var(--red); color:white; transform:scale(1.1)}
+  .autocomplete-delete:hover{background:var(--red); color:#fff; transform:scale(1.1)}
 
   .date-filter-wrap{display:flex; flex-direction:column; gap:6px}
   .period-btns{display:flex; gap:6px}
   .period-btn{flex:1; padding:6px 10px; font-size:12px; font-weight:600; border-radius:8px;
-    border:2px solid var(--border); background:var(--card); color:var(--muted);
-    cursor:pointer; transition:all 0.3s}
-  .period-btn.active{background:var(--primary); color:white; border-color:var(--primary)}
+    border:2px solid var(--border); background:var(--card); color:var(--muted); cursor:pointer; transition:all .3s}
+  .period-btn.active{background:var(--primary); color:#fff; border-color:var(--primary)}
   .period-btn:hover:not(.active){background:var(--card2); border-color:var(--primary-light)}
 
   .filter-reset-all{grid-column:1/-1; display:flex; justify-content:flex-end; margin-top:-4px}
@@ -91,110 +88,85 @@
   .sep{height:1px; background:var(--border); margin:20px 0}
   .muted{color:var(--muted); font-size:13px}
 
-  /* 표 영역을 가로 스크롤로 감싸 화면 잘림 방지 */
+  /* 표: 가로 스크롤 컨테이너로 감싸서 '짤림' 방지 */
   .table-wrap{width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch}
   table{width:100%; border-collapse:separate; border-spacing:0; min-width:980px}
   thead th{position:sticky; top:0; background:var(--card2); z-index:2; border-bottom:2px solid var(--border);
-    padding:14px 12px; font-size:13px; font-weight:700; text-transform:uppercase;
-    letter-spacing:0.5px; color:var(--muted); white-space:nowrap}
-  tbody tr{transition:all 0.2s; border-bottom:1px solid var(--border)}
+    padding:14px 12px; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); white-space:nowrap}
+  tbody tr{transition:all .2s; border-bottom:1px solid var(--border)}
   tbody tr:hover{background:var(--card2); transform:scale(1.001)}
   td{padding:14px 12px; font-size:14px; vertical-align:middle}
   .num{text-align:right; font-variant-numeric:tabular-nums; font-weight:600}
   .center{text-align:center}
   .nowrap{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:260px}
-  .url a{color:var(--primary-light); text-decoration:none; font-weight:600; transition:color 0.2s}
+  .url a{color:var(--primary-light); text-decoration:none; font-weight:600; transition:color .2s}
   .url a:hover{color:var(--primary); text-decoration:underline}
   .select-row{width:18px; height:18px; cursor:pointer}
 
-  tr.deadline-warning{border-left:4px solid var(--amber); background:rgba(245,158,11,0.1);
-    animation:pulse 2s ease-in-out infinite}
-  @keyframes pulse{0%,100%{background:rgba(245,158,11,0.1)} 50%{background:rgba(245,158,11,0.2)}}
+  tr.deadline-warning{border-left:4px solid var(--amber); background:rgba(245,158,11,.1); animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{background:rgba(245,158,11,.1)} 50%{background:rgba(245,158,11,.2)}}
 
-  .cell-editor{width:100%; border-radius:8px; padding:8px 12px; border:2px solid var(--primary);
-    background:var(--card); color:var(--text); font-size:14px}
+  .cell-editor{width:100%; border-radius:8px; padding:8px 12px; border:2px solid var(--primary); background:var(--card); color:var(--text); font-size:14px}
   .badge-yes{color:var(--green); font-weight:700}
   .badge-no{color:var(--amber); font-weight:700}
 
-  .bulk-edit-bar{background:linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1));
+  .bulk-edit-bar{background:linear-gradient(135deg, rgba(99,102,241,.1), rgba(139,92,246,.1));
     border:2px solid var(--primary); border-radius:16px; padding:16px 20px; margin-bottom:16px;
-    display:none; align-items:center; gap:16px; animation:slideDown 0.3s}
+    display:none; align-items:center; gap:16px; animation:slideDown .3s}
   .bulk-edit-bar.active{display:flex}
   @keyframes slideDown{from{opacity:0; transform:translateY(-10px)} to{opacity:1; transform:translateY(0)}}
 
-  .pagination-wrapper{display:flex; align-items:center; justify-content:space-between;
-    padding:20px 0; gap:16px; flex-wrap:wrap}
+  .pagination-wrapper{display:flex; align-items:center; justify-content:space-between; padding:20px 0; gap:16px; flex-wrap:wrap}
   .pagination{display:flex; gap:8px; align-items:center}
-  .page-btn{min-width:36px; height:36px; padding:0 12px; border:2px solid var(--border);
-    background:var(--card); color:var(--text); border-radius:10px; cursor:pointer;
-    font-weight:600; transition:all 0.3s}
+  .page-btn{min-width:36px; height:36px; padding:0 12px; border:2px solid var(--border); background:var(--card); color:var(--text); border-radius:10px; cursor:pointer; font-weight:600; transition:all .3s}
   .page-btn:hover:not(.active):not(:disabled){border-color:var(--primary); background:var(--card2)}
-  .page-btn.active{background:var(--primary); color:white; border-color:var(--primary)}
-  .page-btn:disabled{opacity:0.3; cursor:not-allowed}
+  .page-btn.active{background:var(--primary); color:#fff; border-color:var(--primary)}
+  .page-btn:disabled{opacity:.3; cursor:not-allowed}
   .per-page-selector{display:flex; align-items:center; gap:10px}
   .per-page-selector select{width:auto; padding:8px 12px}
 
   .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
   @media (max-width:800px){.kpis{grid-template-columns:repeat(2,1fr)}}
-  .kpi{padding:18px; background:var(--card2); border:2px solid var(--border); border-radius:16px;
-    transition:all 0.3s; position:relative; overflow:hidden}
-  .kpi::before{content:''; position:absolute; top:0; left:0; right:0; height:3px;
-    background:var(--gradient-1); opacity:0; transition:opacity 0.3s}
+  .kpi{padding:18px; background:var(--card2); border:2px solid var(--border); border-radius:16px; transition:all .3s; position:relative; overflow:hidden}
+  .kpi::before{content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--gradient-1); opacity:0; transition:opacity .3s}
   .kpi:hover{border-color:var(--primary); transform:translateY(-2px)}
   .kpi:hover::before{opacity:1}
-  .kpi .v{font-weight:900; font-size:24px; background:var(--gradient-1);
-    -webkit-background-clip:text; -webkit-text-fill-color:transparent}
+  .kpi .v{font-weight:900; font-size:24px; background:var(--gradient-1); -webkit-background-clip:text; -webkit-text-fill-color:transparent}
 
-  .bars{display:flex; align-items:flex-end; gap:10px; height:180px; padding:12px;
-    border:2px solid var(--border); border-radius:16px; background:var(--card2); overflow-x:auto}
+  .bars{display:flex; align-items:flex-end; gap:10px; height:180px; padding:12px; border:2px solid var(--border); border-radius:16px; background:var(--card2); overflow-x:auto}
   .bars .col{flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; min-width:60px}
-  .bars .bar{width:100%; max-width:50px; background:var(--gradient-1); border:2px solid var(--border);
-    border-radius:12px 12px 6px 6px; height:10%; box-shadow:0 4px 12px rgba(99,102,241,0.2); transition:all 0.3s}
+  .bars .bar{width:100%; max-width:50px; background:var(--gradient-1); border:2px solid var(--border); border-radius:12px 12px 6px 6px; height:10%; box-shadow:0 4px 12px rgba(99,102,241,.2); transition:all .3s}
   .bars .col:hover .bar{transform:translateY(-4px)}
   .bar-value{font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px}
   .note{font-size:11px; color:var(--muted); font-weight:600}
-
-  .product-멘토스 .bar{background:linear-gradient(180deg, #8B5CF6, #7C3AED) !important}
-  .product-호올스 .bar{background:linear-gradient(180deg, #C4B5FD, #A78BFA) !important}
-  .product-말차 .bar{background:linear-gradient(180deg, #10B981, #059669) !important}
+  .product-멘토스 .bar{background:linear-gradient(180deg,#8B5CF6,#7C3AED)!important}
+  .product-호올스 .bar{background:linear-gradient(180deg,#C4B5FD,#A78BFA)!important}
+  .product-말차 .bar{background:linear-gradient(180deg,#10B981,#059669)!important}
 
   .monthly-summary{font-size:14px; line-height:1.8}
-  .month-item{margin-bottom:8px; padding:8px 12px; background:var(--card2); border-radius:10px;
-    border-left:3px solid var(--primary); transition:all 0.2s; cursor:pointer;
-    display:flex; justify-content:space-between; align-items:center}
+  .month-item{margin-bottom:8px; padding:8px 12px; background:var(--card2); border-radius:10px; border-left:3px solid var(--primary); transition:all .2s; cursor:pointer; display:flex; justify-content:space-between; align-items:center}
   .month-item:hover{background:var(--card); transform:translateX(4px)}
-  .month-item-icon{color:var(--primary); font-size:16px; opacity:0.6; transition:opacity 0.2s}
+  .month-item-icon{color:var(--primary); font-size:16px; opacity:.6; transition:opacity .2s}
   .month-item:hover .month-item-icon{opacity:1}
 
-  .modal-back{position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px);
-    display:none; align-items:center; justify-content:center; z-index:1000; padding:16px}
+  .modal-back{position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:1000; padding:16px}
   .modal-back.active{display:flex}
-  .modal{background:var(--panel); border:2px solid var(--border); border-radius:24px;
-    box-shadow:0 30px 80px rgba(0,0,0,0.6); width:800px; max-width:100%;
-    max-height:90vh; overflow:auto; animation:modalIn 0.3s}
-  @keyframes modalIn{from{opacity:0; transform:scale(0.9) translateY(20px)}
-    to{opacity:1; transform:scale(1) translateY(0)}}
-  .modal .mh{padding:24px 28px; border-bottom:2px solid var(--border);
-    display:flex; align-items:center; justify-content:space-between;
-    background:linear-gradient(to right, rgba(99,102,241,0.05), transparent)}
+  .modal{background:var(--panel); border:2px solid var(--border); border-radius:24px; box-shadow:0 30px 80px rgba(0,0,0,.6); width:800px; max-width:100%; max-height:90vh; overflow:auto; animation:modalIn .3s}
+  @keyframes modalIn{from{opacity:0; transform:scale(.9) translateY(20px)} to{opacity:1; transform:scale(1) translateY(0)}}
+  .modal .mh{padding:24px 28px; border-bottom:2px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:linear-gradient(to right, rgba(99,102,241,.05), transparent)}
   .modal .mh strong{font-size:20px; font-weight:800}
   .modal .mb{padding:28px}
   .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px}
   .form-grid .full{grid-column:1/-1}
-  .form-grid label{display:block; font-size:13px; font-weight:600; color:var(--muted);
-    margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px}
+  .form-grid label{display:block; font-size:13px; font-weight:600; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:.5px}
 
   .chart-modal-content{width:600px}
-  .chart-modal-close{position:absolute; top:20px; right:20px; width:32px; height:32px;
-    border-radius:50%; background:var(--card2); border:2px solid var(--border);
-    color:var(--text); cursor:pointer; display:flex; align-items:center; justify-content:center;
-    font-size:18px; transition:all 0.2s}
-  .chart-modal-close:hover{background:var(--red); color:white; transform:rotate(90deg)}
+  .chart-modal-close{position:absolute; top:20px; right:20px; width:32px; height:32px; border-radius:50%; background:var(--card2); border:2px solid var(--border); color:var(--text); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; transition:all .2s}
+  .chart-modal-close:hover{background:var(--red); color:#fff; transform:rotate(90deg)}
   .chart-title{font-size:20px; font-weight:800; margin-bottom:24px; text-align:center}
   .pie-chart-container{display:flex; justify-content:center; margin:20px 0}
   .pie-legend{display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:24px}
-  .pie-legend-item{display:flex; align-items:center; gap:10px; padding:8px 12px;
-    background:var(--card2); border-radius:10px; transition:all 0.2s}
+  .pie-legend-item{display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--card2); border-radius:10px; transition:all .2s}
   .pie-legend-item:hover{background:var(--card); transform:translateX(2px)}
   .pie-legend-color{width:20px; height:20px; border-radius:6px; border:2px solid var(--border)}
   .pie-legend-info{flex:1}
@@ -205,7 +177,7 @@
 <body>
 <div class="wrap" id="app">
   <header>
-    <div class="brand" aria-label="브랜드">
+    <div class="brand">
       <span class="icon" aria-hidden="true">💼</span>
       <div>
         <h1>엔티제컴퍼니</h1>
@@ -213,8 +185,8 @@
       </div>
     </div>
     <div class="toolbar">
-      <button class="btn outline" id="exportExcelBtn" aria-label="엑셀 내보내기">📊 엑셀 내보내기</button>
-      <button class="btn" id="themeBtn" aria-label="테마 전환">🌓 테마 전환</button>
+      <button class="btn outline" id="exportExcelBtn">📊 엑셀 내보내기</button>
+      <button class="btn" id="themeBtn">🌓 테마 전환</button>
     </div>
   </header>
 
@@ -229,30 +201,30 @@
     <div class="b">
       <div class="filters">
         <div class="filter-input-wrapper" id="qWrapper">
-          <input id="q" placeholder="🔎 검색: 업체명/키워드/mid" autocomplete="off" aria-label="검색 입력">
+          <input id="q" placeholder="🔎 검색: 업체명/키워드/mid" autocomplete="off">
           <div class="autocomplete-dropdown" id="qAutocomplete"></div>
         </div>
-        <select id="fProduct" aria-label="상품 필터">
+        <select id="fProduct">
           <option value="all">상품: 전체</option>
           <option>멘토스</option><option>말차</option><option>호올스</option><option>신규</option>
         </select>
-        <select id="fCategory" aria-label="구분 필터">
+        <select id="fCategory">
           <option value="all">구분: 전체</option>
           <option>트래픽</option><option>저장</option><option>길찾기</option><option>영수증</option>
         </select>
-        <select id="fTax" aria-label="세금계산서 필터">
+        <select id="fTax">
           <option value="all">세금계산서: 전체</option>
           <option value="yes">발행</option><option value="no">미발행</option>
         </select>
         <div class="date-filter-wrap">
-          <input type="date" id="fDate" autocomplete="off" aria-label="날짜 선택">
-          <div class="period-btns" role="group" aria-label="기간 타입">
+          <input type="date" id="fDate" autocomplete="off">
+          <div class="period-btns">
             <button class="period-btn active" data-period="day">일별</button>
             <button class="period-btn" data-period="week">주별</button>
             <button class="period-btn" data-period="month">월별</button>
           </div>
         </div>
-        <select id="sortSel" aria-label="정렬">
+        <select id="sortSel">
           <option value="date_desc">정렬: 최신일자</option>
           <option value="date_asc">정렬: 오래된일자</option>
           <option value="cost_desc">정렬: 작업비 ⬇</option>
@@ -279,7 +251,6 @@
         <button class="btn small" id="bulkEditBtn">✏️ 일괄수정</button>
       </div>
 
-      <!-- 표를 가로 스크롤 컨테이너로 감싼다 -->
       <div class="table-wrap">
         <table id="tbl">
           <thead>
@@ -298,7 +269,7 @@
       <div class="pagination-wrapper">
         <div class="per-page-selector">
           <span class="muted">페이지당 표시:</span>
-          <select id="perPageSelect" aria-label="페이지당 표시 개수">
+          <select id="perPageSelect">
             <option value="30" selected>30개</option>
             <option value="50">50개</option>
             <option value="100">100개</option>
@@ -536,14 +507,13 @@ function render(){renderTable(); renderKpis(); updateBulkEditBar(); save()}
 function renderTable(){
   const tbody=$('#tbody'); tbody.innerHTML='';
   const allRows=applyFilters(state.rows);
-  // 총 페이지 최소 1 보장 및 현재 페이지 클램프
   const{perPage}=state.pagination;
   let totalPages=Math.ceil(allRows.length/perPage);
   if(totalPages<1) totalPages=1;
   if(state.pagination.currentPage>totalPages) state.pagination.currentPage=totalPages;
   if(state.pagination.currentPage<1) state.pagination.currentPage=1;
-
   const {currentPage}=state.pagination;
+
   const startIdx=(currentPage-1)*perPage;
   const rows=allRows.slice(startIdx,startIdx+perPage);
   $('#countInfo').textContent=`${allRows.length}건 (${currentPage}/${totalPages} 페이지)`;
