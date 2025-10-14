@@ -1,3 +1,5 @@
+<!doctype html>
+<html lang="ko">
 <head>
 <meta charset="utf-8">
 <title>엔티제컴퍼니 · 작업 대시보드</title>
