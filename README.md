@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <title>엔티제컴퍼니 · 작업 대시보드</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 <style>
   :root{
     --bg:#0f0f23; --panel:#1a1a2e; --card:#16213e; --card2:#1f2d47;
@@ -20,12 +20,15 @@
     --shadow:0 10px 40px rgba(0,0,0,0.08);
   }
   *{box-sizing:border-box; margin:0; padding:0}
+  html,body{max-width:100%; overflow-x:hidden}
   body{
     background:var(--bg); color:var(--text);
-    font-family:'Pretendard',-apple-system,system-ui,sans-serif; line-height:1.6;
+    font-family:'Pretendard',-apple-system,system-ui,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;
+    line-height:1.6;
   }
+  img,canvas,svg,video{max-width:100%; height:auto}
   .wrap{max-width:1400px; margin:0 auto; padding:24px; display:grid; gap:20px}
-  
+
   header{
     background:var(--panel); border:1px solid var(--border); border-radius:20px;
     padding:24px 32px; box-shadow:var(--shadow); display:flex;
@@ -37,7 +40,7 @@
   .brand h1{font-size:24px; font-weight:800; background:var(--gradient-1); -webkit-background-clip:text; -webkit-text-fill-color:transparent}
   .chip{background:var(--chip); border:1px solid var(--border); color:var(--primary-light);
     padding:6px 14px; border-radius:999px; font-size:12px; font-weight:600}
-  
+
   .btn{background:var(--primary); color:white; border:none; padding:10px 20px;
     border-radius:12px; cursor:pointer; font-weight:600; font-size:14px;
     transition:all 0.3s; box-shadow:0 4px 12px rgba(99,102,241,0.3)}
@@ -46,21 +49,21 @@
   .btn.outline:hover{border-color:var(--primary); color:var(--primary); background:rgba(99,102,241,0.1)}
   .btn.danger{background:#ef4444}
   .btn.small{padding:8px 14px; font-size:13px}
-  
+
   .panel{background:var(--panel); border:1px solid var(--border); border-radius:20px; box-shadow:var(--shadow); overflow:hidden}
   .panel .h{padding:20px 28px; border-bottom:1px solid var(--border); display:flex;
     align-items:center; justify-content:space-between; background:linear-gradient(to right, rgba(99,102,241,0.05), transparent)}
   .panel .h strong{font-size:18px; font-weight:700}
   .panel .b{padding:24px 28px}
-  
+
   .filters{display:grid; grid-template-columns:1.4fr repeat(3,1fr) 0.9fr 1fr; gap:12px}
   @media (max-width:1100px){.filters{grid-template-columns:1fr 1fr}}
-  
+
   .filter-input-wrapper{position:relative}
   input, select{width:100%; padding:12px 16px; border-radius:12px; border:2px solid var(--border);
     background:var(--card); color:var(--text); font-size:14px; font-weight:500; transition:all 0.3s}
   input:focus, select:focus{outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(99,102,241,0.1)}
-  
+
   .autocomplete-dropdown{position:absolute; top:100%; left:0; right:0; background:var(--panel);
     border:2px solid var(--border); border-radius:12px; margin-top:4px; max-height:250px;
     overflow-y:auto; z-index:100; box-shadow:var(--shadow); display:none}
@@ -74,7 +77,7 @@
     color:var(--muted); border:none; cursor:pointer; font-size:16px; opacity:0; transition:all 0.2s}
   .autocomplete-item:hover .autocomplete-delete{opacity:1}
   .autocomplete-delete:hover{background:var(--red); color:white; transform:scale(1.1)}
-  
+
   .date-filter-wrap{display:flex; flex-direction:column; gap:6px}
   .period-btns{display:flex; gap:6px}
   .period-btn{flex:1; padding:6px 10px; font-size:12px; font-weight:600; border-radius:8px;
@@ -82,13 +85,15 @@
     cursor:pointer; transition:all 0.3s}
   .period-btn.active{background:var(--primary); color:white; border-color:var(--primary)}
   .period-btn:hover:not(.active){background:var(--card2); border-color:var(--primary-light)}
-  
+
   .filter-reset-all{grid-column:1/-1; display:flex; justify-content:flex-end; margin-top:-4px}
   .toolbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
   .sep{height:1px; background:var(--border); margin:20px 0}
   .muted{color:var(--muted); font-size:13px}
-  
-  table{width:100%; border-collapse:separate; border-spacing:0}
+
+  /* 표 영역을 가로 스크롤로 감싸 화면 잘림 방지 */
+  .table-wrap{width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch}
+  table{width:100%; border-collapse:separate; border-spacing:0; min-width:980px}
   thead th{position:sticky; top:0; background:var(--card2); z-index:2; border-bottom:2px solid var(--border);
     padding:14px 12px; font-size:13px; font-weight:700; text-transform:uppercase;
     letter-spacing:0.5px; color:var(--muted); white-space:nowrap}
@@ -101,22 +106,22 @@
   .url a{color:var(--primary-light); text-decoration:none; font-weight:600; transition:color 0.2s}
   .url a:hover{color:var(--primary); text-decoration:underline}
   .select-row{width:18px; height:18px; cursor:pointer}
-  
+
   tr.deadline-warning{border-left:4px solid var(--amber); background:rgba(245,158,11,0.1);
     animation:pulse 2s ease-in-out infinite}
   @keyframes pulse{0%,100%{background:rgba(245,158,11,0.1)} 50%{background:rgba(245,158,11,0.2)}}
-  
+
   .cell-editor{width:100%; border-radius:8px; padding:8px 12px; border:2px solid var(--primary);
     background:var(--card); color:var(--text); font-size:14px}
   .badge-yes{color:var(--green); font-weight:700}
   .badge-no{color:var(--amber); font-weight:700}
-  
+
   .bulk-edit-bar{background:linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1));
     border:2px solid var(--primary); border-radius:16px; padding:16px 20px; margin-bottom:16px;
     display:none; align-items:center; gap:16px; animation:slideDown 0.3s}
   .bulk-edit-bar.active{display:flex}
   @keyframes slideDown{from{opacity:0; transform:translateY(-10px)} to{opacity:1; transform:translateY(0)}}
-  
+
   .pagination-wrapper{display:flex; align-items:center; justify-content:space-between;
     padding:20px 0; gap:16px; flex-wrap:wrap}
   .pagination{display:flex; gap:8px; align-items:center}
@@ -128,8 +133,9 @@
   .page-btn:disabled{opacity:0.3; cursor:not-allowed}
   .per-page-selector{display:flex; align-items:center; gap:10px}
   .per-page-selector select{width:auto; padding:8px 12px}
-  
+
   .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
+  @media (max-width:800px){.kpis{grid-template-columns:repeat(2,1fr)}}
   .kpi{padding:18px; background:var(--card2); border:2px solid var(--border); border-radius:16px;
     transition:all 0.3s; position:relative; overflow:hidden}
   .kpi::before{content:''; position:absolute; top:0; left:0; right:0; height:3px;
@@ -138,20 +144,20 @@
   .kpi:hover::before{opacity:1}
   .kpi .v{font-weight:900; font-size:24px; background:var(--gradient-1);
     -webkit-background-clip:text; -webkit-text-fill-color:transparent}
-  
+
   .bars{display:flex; align-items:flex-end; gap:10px; height:180px; padding:12px;
-    border:2px solid var(--border); border-radius:16px; background:var(--card2)}
+    border:2px solid var(--border); border-radius:16px; background:var(--card2); overflow-x:auto}
   .bars .col{flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; min-width:60px}
   .bars .bar{width:100%; max-width:50px; background:var(--gradient-1); border:2px solid var(--border);
     border-radius:12px 12px 6px 6px; height:10%; box-shadow:0 4px 12px rgba(99,102,241,0.2); transition:all 0.3s}
   .bars .col:hover .bar{transform:translateY(-4px)}
   .bar-value{font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px}
   .note{font-size:11px; color:var(--muted); font-weight:600}
-  
+
   .product-멘토스 .bar{background:linear-gradient(180deg, #8B5CF6, #7C3AED) !important}
   .product-호올스 .bar{background:linear-gradient(180deg, #C4B5FD, #A78BFA) !important}
   .product-말차 .bar{background:linear-gradient(180deg, #10B981, #059669) !important}
-  
+
   .monthly-summary{font-size:14px; line-height:1.8}
   .month-item{margin-bottom:8px; padding:8px 12px; background:var(--card2); border-radius:10px;
     border-left:3px solid var(--primary); transition:all 0.2s; cursor:pointer;
@@ -159,12 +165,12 @@
   .month-item:hover{background:var(--card); transform:translateX(4px)}
   .month-item-icon{color:var(--primary); font-size:16px; opacity:0.6; transition:opacity 0.2s}
   .month-item:hover .month-item-icon{opacity:1}
-  
+
   .modal-back{position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px);
-    display:none; align-items:center; justify-content:center; z-index:1000}
+    display:none; align-items:center; justify-content:center; z-index:1000; padding:16px}
   .modal-back.active{display:flex}
   .modal{background:var(--panel); border:2px solid var(--border); border-radius:24px;
-    box-shadow:0 30px 80px rgba(0,0,0,0.6); width:800px; max-width:94vw;
+    box-shadow:0 30px 80px rgba(0,0,0,0.6); width:800px; max-width:100%;
     max-height:90vh; overflow:auto; animation:modalIn 0.3s}
   @keyframes modalIn{from{opacity:0; transform:scale(0.9) translateY(20px)}
     to{opacity:1; transform:scale(1) translateY(0)}}
@@ -177,7 +183,7 @@
   .form-grid .full{grid-column:1/-1}
   .form-grid label{display:block; font-size:13px; font-weight:600; color:var(--muted);
     margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px}
-  
+
   .chart-modal-content{width:600px}
   .chart-modal-close{position:absolute; top:20px; right:20px; width:32px; height:32px;
     border-radius:50%; background:var(--card2); border:2px solid var(--border);
@@ -199,16 +205,16 @@
 <body>
 <div class="wrap" id="app">
   <header>
-    <div class="brand">
-      <span class="icon">💼</span>
+    <div class="brand" aria-label="브랜드">
+      <span class="icon" aria-hidden="true">💼</span>
       <div>
         <h1>엔티제컴퍼니</h1>
         <span class="chip">작업 대시보드</span>
       </div>
     </div>
     <div class="toolbar">
-      <button class="btn outline" id="exportExcelBtn">📊 엑셀 내보내기</button>
-      <button class="btn" id="themeBtn">🌓 테마 전환</button>
+      <button class="btn outline" id="exportExcelBtn" aria-label="엑셀 내보내기">📊 엑셀 내보내기</button>
+      <button class="btn" id="themeBtn" aria-label="테마 전환">🌓 테마 전환</button>
     </div>
   </header>
 
@@ -223,30 +229,30 @@
     <div class="b">
       <div class="filters">
         <div class="filter-input-wrapper" id="qWrapper">
-          <input id="q" placeholder="🔎 검색: 업체명/키워드/mid" autocomplete="off">
+          <input id="q" placeholder="🔎 검색: 업체명/키워드/mid" autocomplete="off" aria-label="검색 입력">
           <div class="autocomplete-dropdown" id="qAutocomplete"></div>
         </div>
-        <select id="fProduct">
+        <select id="fProduct" aria-label="상품 필터">
           <option value="all">상품: 전체</option>
           <option>멘토스</option><option>말차</option><option>호올스</option><option>신규</option>
         </select>
-        <select id="fCategory">
+        <select id="fCategory" aria-label="구분 필터">
           <option value="all">구분: 전체</option>
           <option>트래픽</option><option>저장</option><option>길찾기</option><option>영수증</option>
         </select>
-        <select id="fTax">
+        <select id="fTax" aria-label="세금계산서 필터">
           <option value="all">세금계산서: 전체</option>
           <option value="yes">발행</option><option value="no">미발행</option>
         </select>
         <div class="date-filter-wrap">
-          <input type="date" id="fDate" autocomplete="off">
-          <div class="period-btns">
+          <input type="date" id="fDate" autocomplete="off" aria-label="날짜 선택">
+          <div class="period-btns" role="group" aria-label="기간 타입">
             <button class="period-btn active" data-period="day">일별</button>
             <button class="period-btn" data-period="week">주별</button>
             <button class="period-btn" data-period="month">월별</button>
           </div>
         </div>
-        <select id="sortSel">
+        <select id="sortSel" aria-label="정렬">
           <option value="date_desc">정렬: 최신일자</option>
           <option value="date_asc">정렬: 오래된일자</option>
           <option value="cost_desc">정렬: 작업비 ⬇</option>
@@ -272,22 +278,27 @@
         <span class="muted" id="selectedCount">0개 선택</span>
         <button class="btn small" id="bulkEditBtn">✏️ 일괄수정</button>
       </div>
-      <table id="tbl">
-        <thead>
-          <tr>
-            <th class="center"><input type="checkbox" id="chkAll" class="select-row"></th>
-            <th>상품</th><th>구분</th><th>업체명</th><th>mid</th><th>키워드</th>
-            <th>시작일</th><th>종료일</th><th class="num">일타</th><th class="num">일수</th>
-            <th class="num">단가</th><th class="num">총량</th><th class="num">작업비</th>
-            <th class="center">세금</th><th>비고</th><th class="center">⚙️</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
+
+      <!-- 표를 가로 스크롤 컨테이너로 감싼다 -->
+      <div class="table-wrap">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th class="center"><input type="checkbox" id="chkAll" class="select-row" aria-label="전체 선택"></th>
+              <th>상품</th><th>구분</th><th>업체명</th><th>mid</th><th>키워드</th>
+              <th>시작일</th><th>종료일</th><th class="num">일타</th><th class="num">일수</th>
+              <th class="num">단가</th><th class="num">총량</th><th class="num">작업비</th>
+              <th class="center">세금</th><th>비고</th><th class="center">⚙️</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
       <div class="pagination-wrapper">
         <div class="per-page-selector">
           <span class="muted">페이지당 표시:</span>
-          <select id="perPageSelect">
+          <select id="perPageSelect" aria-label="페이지당 표시 개수">
             <option value="30" selected>30개</option>
             <option value="50">50개</option>
             <option value="100">100개</option>
@@ -317,9 +328,9 @@
   </section>
 </div>
 
-<div class="modal-back" id="chartModal">
+<div class="modal-back" id="chartModal" role="dialog" aria-modal="true" aria-labelledby="chartTitle">
   <div class="modal chart-modal-content">
-    <button class="chart-modal-close" id="closeChartModal">✕</button>
+    <button class="chart-modal-close" id="closeChartModal" aria-label="차트 닫기">✕</button>
     <div class="chart-title" id="chartTitle">월별 상품 분석</div>
     <div class="pie-chart-container">
       <canvas id="pieChart" width="300" height="300"></canvas>
@@ -328,7 +339,7 @@
   </div>
 </div>
 
-<div class="modal-back" id="addModalBack">
+<div class="modal-back" id="addModalBack" role="dialog" aria-modal="true">
   <div class="modal">
     <div class="mh">
       <strong>➕ 새 항목 등록</strong>
@@ -369,7 +380,7 @@
   </div>
 </div>
 
-<div class="modal-back" id="bulkEditModalBack">
+<div class="modal-back" id="bulkEditModalBack" role="dialog" aria-modal="true">
   <div class="modal">
     <div class="mh">
       <strong>✏️ 일괄수정</strong>
@@ -414,7 +425,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const fmtMoney = n => '₩' + Math.round(n||0).toLocaleString('ko-KR');
 const parseNum = v => v===''||v==null? null : (isNaN(Number(v))? null : Number(v));
-const toISO = d => {if(!d)return''; const z=new Date(d); return new Date(z-z.getTimezoneOffset()*60000).toISOString().slice(0,10)};
+const toISO = d => {if(!d)return''; const z=new Date(d); return new Date(z - z.getTimezoneOffset()*60000).toISOString().slice(0,10)};
 const today = () => toISO(new Date());
 
 const storageKey = 'ntz-company-ops-v4';
@@ -525,28 +536,34 @@ function render(){renderTable(); renderKpis(); updateBulkEditBar(); save()}
 function renderTable(){
   const tbody=$('#tbody'); tbody.innerHTML='';
   const allRows=applyFilters(state.rows);
-  const{currentPage,perPage}=state.pagination;
-  const totalPages=Math.ceil(allRows.length/perPage);
+  // 총 페이지 최소 1 보장 및 현재 페이지 클램프
+  const{perPage}=state.pagination;
+  let totalPages=Math.ceil(allRows.length/perPage);
+  if(totalPages<1) totalPages=1;
+  if(state.pagination.currentPage>totalPages) state.pagination.currentPage=totalPages;
+  if(state.pagination.currentPage<1) state.pagination.currentPage=1;
+
+  const {currentPage}=state.pagination;
   const startIdx=(currentPage-1)*perPage;
   const rows=allRows.slice(startIdx,startIdx+perPage);
   $('#countInfo').textContent=`${allRows.length}건 (${currentPage}/${totalPages} 페이지)`;
-  
+
   const today=new Date(); today.setHours(0,0,0,0);
   const tomorrow=new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
-  
+
   rows.forEach(r=>{
     const tr=document.createElement('tr');
     if(r.endDate){const ed=new Date(r.endDate); ed.setHours(0,0,0,0); if(ed.getTime()===tomorrow.getTime())tr.classList.add('deadline-warning')}
-    
+
     const tdSel=document.createElement('td'); tdSel.className='center';
     const cb=document.createElement('input'); cb.type='checkbox'; cb.className='select-row';
     cb.checked=state.selected.has(r.id);
     cb.onchange=()=>{if(cb.checked)state.selected.add(r.id); else state.selected.delete(r.id); updateBulkEditBar()};
     tdSel.appendChild(cb); tr.appendChild(tdSel);
-    
+
     addCell(tr,r,'product'); addCell(tr,r,'category'); addCell(tr,r,'client',null,'nowrap');
     const tdMid=document.createElement('td'); tdMid.className='url nowrap';
-    if(r.mid){const a=document.createElement('a'); a.href=r.mid; a.target='_blank'; a.textContent='열기'; tdMid.appendChild(a)}
+    if(r.mid){const a=document.createElement('a'); a.href=r.mid; a.target='_blank'; a.rel='noopener noreferrer'; a.textContent='열기'; tdMid.appendChild(a)}
     tdMid.onclick=()=>startEdit(tdMid,r,'mid'); tr.appendChild(tdMid);
     addCell(tr,r,'keywords',null,'nowrap'); addCell(tr,r,'startDate'); addCell(tr,r,'endDate');
     addCell(tr,r,'units',null,'num'); addCell(tr,r,'days',null,'num'); addCell(tr,r,'unitPrice',null,'num');
@@ -555,7 +572,7 @@ function renderTable(){
     const tdTax=document.createElement('td'); tdTax.className='center '+(r.tax==='발행'?'badge-yes':'badge-no');
     tdTax.textContent=r.tax||''; tdTax.onclick=()=>startEdit(tdTax,r,'tax'); tr.appendChild(tdTax);
     addCell(tr,r,'note',null,'nowrap');
-    
+
     const tdAct=document.createElement('td'); tdAct.className='center';
     const dup=document.createElement('button'); dup.className='btn small outline'; dup.textContent='복제';
     dup.onclick=()=>{const c=JSON.parse(JSON.stringify(r)); c.id='r_'+Math.random().toString(36).slice(2,9); c.createdAt=new Date().toISOString(); state.rows.unshift(c); render()};
@@ -564,7 +581,7 @@ function renderTable(){
     tdAct.append(dup,' ',del); tr.appendChild(tdAct);
     tbody.appendChild(tr);
   });
-  
+
   const allFiltered=applyFilters(state.rows);
   $('#chkAll').checked=allFiltered.length>0&&allFiltered.every(r=>state.selected.has(r.id));
   renderPagination(totalPages);
@@ -612,7 +629,7 @@ function renderPagination(totalPages){
   const{currentPage}=state.pagination;
   const prev=document.createElement('button'); prev.className='page-btn'; prev.textContent='‹';
   prev.disabled=currentPage===1; prev.onclick=()=>{state.pagination.currentPage--;render()}; c.appendChild(prev);
-  
+
   let start=Math.max(1,currentPage-3), end=Math.min(totalPages,start+6);
   if(end-start<6)start=Math.max(1,end-6);
   if(start>1){const f=document.createElement('button'); f.className='page-btn'; f.textContent='1'; f.onclick=()=>{state.pagination.currentPage=1;render()}; c.appendChild(f);
@@ -621,7 +638,7 @@ function renderPagination(totalPages){
     b.textContent=i; b.onclick=()=>{state.pagination.currentPage=i;render()}; c.appendChild(b)}
   if(end<totalPages){if(end<totalPages-1){const e=document.createElement('span'); e.textContent='...'; e.style.padding='0 8px'; e.style.color='var(--muted)'; c.appendChild(e)}
     const l=document.createElement('button'); l.className='page-btn'; l.textContent=totalPages; l.onclick=()=>{state.pagination.currentPage=totalPages;render()}; c.appendChild(l)}
-  
+
   const next=document.createElement('button'); next.className='page-btn'; next.textContent='›';
   next.disabled=currentPage===totalPages; next.onclick=()=>{state.pagination.currentPage++;render()}; c.appendChild(next);
 }
@@ -675,12 +692,12 @@ function renderKpis(){
   $('#kpiQty').textContent=qty.toLocaleString('ko-KR');
   $('#kpiCost').textContent=fmtMoney(cost);
   $('#kpiAvg').textContent=fmtMoney(qty>0?cost/qty:0);
-  
+
   const byProduct={};
   state.rows.forEach(r=>{const p=r.product||'미분류'; byProduct[p]=(byProduct[p]||0)+(r.cost||0)});
   const pData=Object.entries(byProduct).map(([p,c])=>({label:p,value:c})).sort((a,b)=>b.value-a.value);
   drawBars($('#barsByProduct'),pData,true);
-  
+
   const byMonth={};
   state.rows.forEach(r=>{if(!r.startDate)return; const ym=getYearMonth(r.startDate); byMonth[ym]=(byMonth[ym]||0)+(r.cost||0)});
   const mData=Object.entries(byMonth).sort((a,b)=>b[0].localeCompare(a[0]));
@@ -772,28 +789,28 @@ function bind(){
   qIn.onfocus=()=>{renderAutocomplete(); qDd.classList.add('active')};
   qIn.oninput=e=>{state.filters.q=e.target.value; state.pagination.currentPage=1; render()};
   qIn.onkeydown=e=>{if(e.key==='Enter'&&qIn.value.trim()){saveSearchHistory(qIn.value.trim()); qDd.classList.remove('active')}};
-  document.onclick=e=>{if(!$('#qWrapper').contains(e.target))qDd.classList.remove('active')};
-  
+  document.addEventListener('click',e=>{if(!$('#qWrapper').contains(e.target))qDd.classList.remove('active')},{passive:true});
+
   $('#fProduct').onchange=e=>{state.filters.product=e.target.value; state.pagination.currentPage=1; render()};
   $('#fCategory').onchange=e=>{state.filters.category=e.target.value; state.pagination.currentPage=1; render()};
   $('#fTax').onchange=e=>{state.filters.tax=e.target.value; state.pagination.currentPage=1; render()};
   $('#fDate').onchange=e=>{state.filters.date=e.target.value; state.pagination.currentPage=1; render()};
   $('#sortSel').onchange=e=>{state.filters.sort=e.target.value; state.pagination.currentPage=1; render()};
-  $('#perPageSelect').onchange=e=>{state.pagination.perPage=parseInt(e.target.value); state.pagination.currentPage=1; render()};
-  
+  $('#perPageSelect').onchange=e=>{state.pagination.perPage=parseInt(e.target.value,10); state.pagination.currentPage=1; render()};
+
   $$('.period-btn').forEach(b=>b.onclick=()=>{$$('.period-btn').forEach(x=>x.classList.remove('active'));
     b.classList.add('active'); state.filters.periodType=b.dataset.period; state.pagination.currentPage=1; render()});
-  
+
   $('#resetFiltersBtn').onclick=()=>{$('#q').value=''; $('#fDate').value=''; $('#fProduct').value='all';
     $('#fCategory').value='all'; $('#fTax').value='all'; $('#sortSel').value='date_desc';
     state.filters={q:'',product:'all',category:'all',tax:'all',date:'',periodType:'day',sort:'date_desc'};
     state.pagination.currentPage=1; $$('.period-btn').forEach(b=>b.classList.remove('active'));
     $('.period-btn[data-period="day"]').classList.add('active'); qDd.classList.remove('active'); render()};
-  
+
   $('#chkAll').onchange=e=>{const all=applyFilters(state.rows);
     if(e.target.checked)all.forEach(r=>state.selected.add(r.id)); else all.forEach(r=>state.selected.delete(r.id));
     renderTable(); updateBulkEditBar()};
-  
+
   $('#bulkEditBtn').onclick=openBulkEditModal;
   $('#bulkEditForm').onsubmit=applyBulkEdit;
   $('#openAddModalBtn').onclick=openAddModal;
