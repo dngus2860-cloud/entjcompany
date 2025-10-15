@@ -4,8 +4,7 @@
 <meta charset="utf-8">
 <title>엔티제컴퍼니 · 작업 대시보드</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!-- 외부 라이브러리는 절대경로 미사용 / 상대경로 또는 완전한 URL만 사용 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+
 <style>
   :root{
     --bg:#0f0f23; --panel:#1a1a2e; --card:#16213e; --card2:#1f2d47;
@@ -28,6 +27,45 @@
   img,canvas,svg,video{max-width:100%; height:auto; display:block}
 
   .wrap{max-width:1400px; margin:0 auto; padding:24px; display:grid; gap:20px}
+
+  /* 연결 상태 표시 */
+  .connection-status {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: var(--shadow);
+  }
+  .connection-status.connected {
+    background: var(--green);
+    color: white;
+  }
+  .connection-status.disconnected {
+    background: var(--red);
+    color: white;
+  }
+  .connection-status.local {
+    background: var(--amber);
+    color: white;
+  }
+  .connection-status .indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
 
   header{
     background:var(--panel); border:1px solid var(--border); border-radius:20px;
@@ -104,7 +142,6 @@
   .select-row{width:18px; height:18px; cursor:pointer}
 
   tr.deadline-warning{border-left:4px solid var(--amber); background:rgba(245,158,11,.1); animation:pulse 2s ease-in-out infinite}
-  @keyframes pulse{0%,100%{background:rgba(245,158,11,.1)} 50%{background:rgba(245,158,11,.2)}}
 
   .cell-editor{width:100%; border-radius:8px; padding:8px 12px; border:2px solid var(--primary); background:var(--card); color:var(--text); font-size:14px}
   .badge-yes{color:var(--green); font-weight:700}
@@ -175,13 +212,19 @@
 </style>
 </head>
 <body>
+<!-- 연결 상태 표시 -->
+<div class="connection-status local" id="connectionStatus">
+  <span class="indicator"></span>
+  <span id="connectionText">로컬 모드</span>
+</div>
+
 <div class="wrap" id="app">
   <header>
     <div class="brand">
       <span class="icon" aria-hidden="true">💼</span>
       <div>
         <h1>엔티제컴퍼니</h1>
-        <span class="chip">작업 대시보드</span>
+        <span class="chip" id="modeChip">작업 대시보드</span>
       </div>
     </div>
     <div class="toolbar">
@@ -236,7 +279,7 @@
         </div>
       </div>
       <div class="sep"></div>
-      <div class="muted">💡 표 셀 클릭 시 바로 수정 (Enter=저장, Esc=취소)</div>
+      <div class="muted" id="modeInfo">💡 표 셀 클릭 시 바로 수정 (Enter=저장, Esc=취소)</div>
     </div>
   </section>
 
@@ -391,7 +434,28 @@
   </div>
 </div>
 
+<!-- Firebase SDK 및 XLSX 라이브러리 -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <script>
+// ========== 설정 영역 ==========
+// Firebase 설정 - 실제 프로젝트 정보로 교체하세요
+const USE_FIREBASE = false; // true로 변경하면 Firebase 사용, false는 로컬 저장소 사용
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY_HERE",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+// ================================
+
+// 유틸리티 함수들
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const fmtMoney = n => '₩' + Math.round(n||0).toLocaleString('ko-KR');
@@ -406,8 +470,80 @@ const state = {
   prefs: {theme:'auto'},
   filters: {q:'', product:'all', category:'all', tax:'all', date:'', periodType:'day', sort:'date_desc'},
   selected: new Set(),
-  pagination: {currentPage:1, perPage:30}
+  pagination: {currentPage:1, perPage:30},
+  isFirebaseConnected: false,
+  useFirebase: USE_FIREBASE
 };
+
+let db = null;
+let dataRef = null;
+
+// Firebase 초기화 시도
+function initFirebase() {
+  if (!USE_FIREBASE) {
+    console.log('로컬 모드로 실행 중');
+    updateConnectionStatus('local');
+    loadLocal();
+    return false;
+  }
+
+  try {
+    // Firebase 초기화
+    if (typeof firebase !== 'undefined') {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+      dataRef = db.ref('tasks');
+      
+      // 연결 상태 모니터링
+      db.ref('.info/connected').on('value', (snapshot) => {
+        state.isFirebaseConnected = snapshot.val() === true;
+        updateConnectionStatus(state.isFirebaseConnected ? 'connected' : 'disconnected');
+      });
+      
+      setupFirebaseListeners();
+      loadFromFirebase();
+      return true;
+    } else {
+      console.error('Firebase SDK가 로드되지 않았습니다');
+      state.useFirebase = false;
+      updateConnectionStatus('local');
+      loadLocal();
+      return false;
+    }
+  } catch(error) {
+    console.error('Firebase 초기화 실패:', error);
+    state.useFirebase = false;
+    updateConnectionStatus('local');
+    loadLocal();
+    return false;
+  }
+}
+
+function updateConnectionStatus(status) {
+  const statusEl = $('#connectionStatus');
+  const textEl = $('#connectionText');
+  const chipEl = $('#modeChip');
+  const modeInfo = $('#modeInfo');
+  
+  statusEl.classList.remove('connected', 'disconnected', 'local');
+  
+  if (status === 'connected') {
+    statusEl.classList.add('connected');
+    textEl.textContent = '실시간 동기화 활성화';
+    chipEl.textContent = '작업 대시보드 (Firebase 연동)';
+    modeInfo.textContent = '💡 표 셀 클릭 시 바로 수정 (Enter=저장, Esc=취소) | 🔄 실시간 동기화 활성화';
+  } else if (status === 'disconnected') {
+    statusEl.classList.add('disconnected');
+    textEl.textContent = '오프라인';
+    chipEl.textContent = '작업 대시보드 (Firebase)';
+    modeInfo.textContent = '💡 표 셀 클릭 시 바로 수정 (Enter=저장, Esc=취소) | ⚠️ 오프라인 모드';
+  } else {
+    statusEl.classList.add('local');
+    textEl.textContent = '로컬 모드';
+    chipEl.textContent = '작업 대시보드 (로컬 저장)';
+    modeInfo.textContent = '💡 표 셀 클릭 시 바로 수정 (Enter=저장, Esc=취소) | 💾 로컬 저장소 사용 중';
+  }
+}
 
 function getWeekNumber(d){
   const date=new Date(d); date.setHours(0,0,0,0);
@@ -415,11 +551,12 @@ function getWeekNumber(d){
   const yearStart=new Date(date.getFullYear(),0,1);
   return {year:date.getFullYear(), week:Math.ceil((((date-yearStart)/86400000)+1)/7)};
 }
+
 function getYearMonth(d){const date=new Date(d); return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`}
 
 function mk(p){
-  const id='r_'+Math.random().toString(36).slice(2,9);
-  const createdAt=new Date().toISOString();
+  const id=p.id || 'r_'+Math.random().toString(36).slice(2,9);
+  const createdAt=p.createdAt || new Date().toISOString();
   const row={id, createdAt, ...p};
   row.totalQty=(row.units||0)*(row.days||0);
   row.cost=row.totalQty*(row.unitPrice||0);
@@ -439,21 +576,98 @@ function seed(){
   ];
 }
 
-function load(){
+// 로컬 저장소 함수들
+function loadLocal(){
   try{
     const raw=localStorage.getItem(storageKey);
     if(raw){const obj=JSON.parse(raw); state.rows=obj.rows||[]; state.prefs={...state.prefs,...(obj.prefs||{})}}
     if(!state.rows.length)seed();
   }catch(e){seed()}
   applyTheme(state.prefs.theme||'auto');
-  if(!localStorage.getItem('ntz-ac-cleared')){
-    localStorage.removeItem(searchHistoryKey);
-    localStorage.setItem('ntz-ac-cleared','true');
+  render();
+}
+
+function saveLocal(){
+  if(!state.useFirebase) {
+    localStorage.setItem(storageKey,JSON.stringify({rows:state.rows,prefs:state.prefs}));
   }
 }
 
-function save(){localStorage.setItem(storageKey,JSON.stringify({rows:state.rows,prefs:state.prefs}))}
+// Firebase 함수들
+function setupFirebaseListeners() {
+  if (!dataRef) return;
+  
+  dataRef.on('child_added', (snapshot) => {
+    const data = snapshot.val();
+    if (data && !state.rows.find(r => r.id === data.id)) {
+      state.rows.unshift(mk(data));
+      render();
+    }
+  });
 
+  dataRef.on('child_changed', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      const index = state.rows.findIndex(r => r.id === data.id);
+      if (index !== -1) {
+        state.rows[index] = mk(data);
+        render();
+      }
+    }
+  });
+
+  dataRef.on('child_removed', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      state.rows = state.rows.filter(r => r.id !== data.id);
+      state.selected.delete(data.id);
+      render();
+    }
+  });
+}
+
+function saveToFirebase(row) {
+  if (!state.useFirebase || !dataRef) {
+    saveLocal();
+    return;
+  }
+  
+  if (!row.id) return;
+  dataRef.child(row.id).set(row).catch(error => {
+    console.error('Firebase 저장 실패:', error);
+    alert('데이터 저장에 실패했습니다. 네트워크 연결을 확인해주세요.');
+  });
+}
+
+function deleteFromFirebase(id) {
+  if (!state.useFirebase || !dataRef) {
+    saveLocal();
+    return;
+  }
+  
+  dataRef.child(id).remove().catch(error => {
+    console.error('Firebase 삭제 실패:', error);
+    alert('데이터 삭제에 실패했습니다. 네트워크 연결을 확인해주세요.');
+  });
+}
+
+function loadFromFirebase() {
+  if (!dataRef) return;
+  
+  dataRef.once('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      state.rows = Object.values(data).map(mk);
+      render();
+    } else {
+      // Firebase에 데이터가 없으면 초기 데이터 생성
+      seed();
+      state.rows.forEach(row => saveToFirebase(row));
+    }
+  });
+}
+
+// 공통 함수들
 function getSearchHistory(){try{return JSON.parse(localStorage.getItem(searchHistoryKey)||'[]')}catch(e){return[]}}
 function saveSearchHistory(q){
   if(!q||!q.trim())return;
@@ -481,6 +695,12 @@ function renderAutocomplete(){
   });
 }
 
+function applyTheme(m){
+  const html=document.documentElement;
+  if(m==='auto'){const pd=matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches; html.setAttribute('data-theme',pd?'dark':'light')}
+  else html.setAttribute('data-theme',m==='dark'?'dark':'light');
+}
+
 function applyFilters(rows){
   let arr=rows.slice(); const f=state.filters;
   if(f.q){const q=f.q.toLowerCase(); arr=arr.filter(r=>[r.client,r.keywords,r.mid,r.product,r.category,r.note].join(' ').toLowerCase().includes(q))}
@@ -502,7 +722,7 @@ function applyFilters(rows){
   return arr;
 }
 
-function render(){renderTable(); renderKpis(); updateBulkEditBar(); save()}
+function render(){renderTable(); renderKpis(); updateBulkEditBar(); saveLocal();}
 
 function renderTable(){
   const tbody=$('#tbody'); tbody.innerHTML='';
@@ -518,8 +738,8 @@ function renderTable(){
   const rows=allRows.slice(startIdx,startIdx+perPage);
   $('#countInfo').textContent=`${allRows.length}건 (${currentPage}/${totalPages} 페이지)`;
 
-  const today=new Date(); today.setHours(0,0,0,0);
-  const tomorrow=new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
+  const todayDate=new Date(); todayDate.setHours(0,0,0,0);
+  const tomorrow=new Date(todayDate); tomorrow.setDate(tomorrow.getDate()+1);
 
   rows.forEach(r=>{
     const tr=document.createElement('tr');
@@ -545,9 +765,23 @@ function renderTable(){
 
     const tdAct=document.createElement('td'); tdAct.className='center';
     const dup=document.createElement('button'); dup.className='btn small outline'; dup.textContent='복제';
-    dup.onclick=()=>{const c=JSON.parse(JSON.stringify(r)); c.id='r_'+Math.random().toString(36).slice(2,9); c.createdAt=new Date().toISOString(); state.rows.unshift(c); render()};
+    dup.onclick=()=>{
+      const c=JSON.parse(JSON.stringify(r)); 
+      c.id='r_'+Math.random().toString(36).slice(2,9); 
+      c.createdAt=new Date().toISOString(); 
+      state.rows.unshift(c); 
+      saveToFirebase(c);
+      render();
+    };
     const del=document.createElement('button'); del.className='btn small danger'; del.textContent='삭제';
-    del.onclick=()=>{if(confirm('삭제할까요?')){state.rows=state.rows.filter(x=>x.id!==r.id); state.selected.delete(r.id); render()}};
+    del.onclick=()=>{
+      if(confirm('삭제할까요?')){
+        state.rows=state.rows.filter(x=>x.id!==r.id); 
+        state.selected.delete(r.id); 
+        deleteFromFirebase(r.id);
+        render();
+      }
+    };
     tdAct.append(dup,' ',del); tr.appendChild(tdAct);
     tbody.appendChild(tr);
   });
@@ -588,6 +822,7 @@ function startEdit(td,row,field){
     row[field]=v||'';
     row.totalQty=(row.units||0)*(row.days||0);
     row.cost=row.totalQty*(row.unitPrice||0);
+    saveToFirebase(row);
     render();
   };
   el.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commit()}else if(e.key==='Escape'){e.preventDefault();render()}};
@@ -651,7 +886,14 @@ function applyBulkEdit(e){
   if($('#bTax').value)u.tax=$('#bTax').value;
   if($('#bNote').value.trim())u.note=$('#bNote').value.trim();
   if(!Object.keys(u).length)return alert('변경할 내용을 입력하세요');
-  state.rows.forEach(r=>{if(state.selected.has(r.id)){Object.assign(r,u); r.totalQty=(r.units||0)*(r.days||0); r.cost=r.totalQty*(r.unitPrice||0)}});
+  state.rows.forEach(r=>{
+    if(state.selected.has(r.id)){
+      Object.assign(r,u); 
+      r.totalQty=(r.units||0)*(r.days||0); 
+      r.cost=r.totalQty*(r.unitPrice||0);
+      saveToFirebase(r);
+    }
+  });
   render(); closeBulkEditModal(); alert(`${state.selected.size}개 수정 완료`);
 }
 
@@ -748,12 +990,6 @@ function exportExcel(){
   alert(`${sel.length}개 항목 내보내기 완료`);
 }
 
-function applyTheme(m){
-  const html=document.documentElement;
-  if(m==='auto'){const pd=matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches; html.setAttribute('data-theme',pd?'dark':'light')}
-  else html.setAttribute('data-theme',m==='dark'?'dark':'light');
-}
-
 function bind(){
   const qIn=$('#q'), qDd=$('#qAutocomplete');
   qIn.onfocus=()=>{renderAutocomplete(); qDd.classList.add('active')};
@@ -784,33 +1020,61 @@ function bind(){
   $('#bulkEditBtn').onclick=openBulkEditModal;
   $('#bulkEditForm').onsubmit=applyBulkEdit;
   $('#openAddModalBtn').onclick=openAddModal;
-  $('#addForm').onsubmit=e=>{e.preventDefault(); const n=mk({product:$('#aProduct').value,category:$('#aCategory').value,
-    client:$('#aClient').value.trim(),mid:$('#aMid').value.trim(),keywords:$('#aKeywords').value.trim(),
-    startDate:$('#aStartDate').value||today(),endDate:$('#aEndDate').value||'',units:parseNum($('#aUnits').value),
-    days:parseNum($('#aDays').value),unitPrice:parseNum($('#aUnitPrice').value),tax:$('#aTax').value||'미발행',
-    note:$('#aNote').value.trim()}); state.rows.unshift(n); render(); closeAddModal()};
-  $('#removeSelectedBtn').onclick=()=>{if(!state.selected.size)return alert('항목을 선택하세요');
-    if(confirm(`${state.selected.size}건 삭제?`)){state.rows=state.rows.filter(r=>!state.selected.has(r.id));
-      state.selected.clear(); render()}};
+  $('#addForm').onsubmit=e=>{
+    e.preventDefault(); 
+    const n=mk({product:$('#aProduct').value,category:$('#aCategory').value,
+      client:$('#aClient').value.trim(),mid:$('#aMid').value.trim(),keywords:$('#aKeywords').value.trim(),
+      startDate:$('#aStartDate').value||today(),endDate:$('#aEndDate').value||'',units:parseNum($('#aUnits').value),
+      days:parseNum($('#aDays').value),unitPrice:parseNum($('#aUnitPrice').value),tax:$('#aTax').value||'미발행',
+      note:$('#aNote').value.trim()}); 
+    state.rows.unshift(n); 
+    saveToFirebase(n);
+    render(); 
+    closeAddModal();
+  };
+  $('#removeSelectedBtn').onclick=()=>{
+    if(!state.selected.size)return alert('항목을 선택하세요');
+    if(confirm(`${state.selected.size}건 삭제?`)){
+      state.rows=state.rows.filter(r=>{
+        if(state.selected.has(r.id)){
+          deleteFromFirebase(r.id);
+          return false;
+        }
+        return true;
+      });
+      state.selected.clear(); 
+      render();
+    }
+  };
   $('#themeBtn').onclick=()=>{const cur=document.documentElement.getAttribute('data-theme');
-    const next=cur==='dark'?'light':'dark'; applyTheme(next); state.prefs.theme=next; save()};
+    const next=cur==='dark'?'light':'dark'; applyTheme(next); state.prefs.theme=next; saveLocal();};
   $('#exportExcelBtn').onclick=exportExcel;
   $('#closeChartModal').onclick=()=>$('#chartModal').classList.remove('active');
   $('#chartModal').onclick=e=>{if(e.target===$('#chartModal'))$('#chartModal').classList.remove('active')};
   document.onkeydown=e=>{if(e.key==='Escape'){closeAddModal(); closeBulkEditModal(); $('#chartModal').classList.remove('active')}};
 }
-const firebaseConfig = {
-  apiKey: "AIzaSyB123456EXAMPLE",
-  authDomain: "entjcompany.firebaseapp.com",
-  databaseURL: "https://entjcompany-default-rtdb.firebaseio.com",
-  projectId: "entjcompany",
-  storageBucket: "entjcompany.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abcdef123456"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-load(); bind(); render();
+
+// 초기화
+window.addEventListener('DOMContentLoaded', () => {
+  // 테마 설정 로드
+  try{
+    const raw=localStorage.getItem(storageKey);
+    if(raw){const obj=JSON.parse(raw); state.prefs={...state.prefs,...(obj.prefs||{})};}
+  }catch(e){}
+  
+  applyTheme(state.prefs.theme||'auto');
+  
+  // Firebase 초기화 시도
+  const firebaseInitialized = initFirebase();
+  
+  // 이벤트 바인딩
+  bind();
+  
+  // Firebase가 초기화되지 않았다면 로컬 모드로 실행
+  if (!firebaseInitialized) {
+    console.log('Firebase 초기화 실패, 로컬 모드로 실행');
+  }
+});
 </script>
 </body>
 </html>
