@@ -20,7 +20,6 @@
     --shadow:0 10px 40px rgba(0,0,0,0.08);
   }
 
-  /* 리셋/안정화 */
   *{box-sizing:border-box; margin:0; padding:0}
   html,body{max-width:100%; overflow-x:hidden; background:var(--bg); color:var(--text)}
   body{font-family:'Pretendard',-apple-system,system-ui,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif; line-height:1.6}
@@ -28,7 +27,6 @@
 
   .wrap{max-width:1400px; margin:0 auto; padding:24px; display:grid; gap:20px}
 
-  /* 연결 상태 표시 */
   .connection-status {
     position: fixed;
     top: 20px;
@@ -126,7 +124,6 @@
   .sep{height:1px; background:var(--border); margin:20px 0}
   .muted{color:var(--muted); font-size:13px}
 
-  /* 표: 가로 스크롤 컨테이너로 감싸서 '짤림' 방지 */
   .table-wrap{width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch}
   table{width:100%; border-collapse:separate; border-spacing:0; min-width:980px}
   thead th{position:sticky; top:0; background:var(--card2); z-index:2; border-bottom:2px solid var(--border);
@@ -212,10 +209,9 @@
 </style>
 </head>
 <body>
-<!-- 연결 상태 표시 -->
 <div class="connection-status local" id="connectionStatus">
   <span class="indicator"></span>
-  <span id="connectionText">로컬 모드</span>
+  <span id="connectionText">연결 중...</span>
 </div>
 
 <div class="wrap" id="app">
@@ -434,28 +430,25 @@
   </div>
 </div>
 
-<!-- Firebase SDK 및 XLSX 라이브러리 -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script>
-// ========== 설정 영역 ==========
-// Firebase 설정 - 실제 프로젝트 정보로 교체하세요
-const USE_FIREBASE = false; // true로 변경하면 Firebase 사용, false는 로컬 저장소 사용
+// ========== Firebase 설정 ==========
+const USE_FIREBASE = true;
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY_HERE",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCV9pjrGzHEoc-s4ppz44lMba5BKE53VAs",
+  authDomain: "entjcompany.firebaseapp.com",
+  databaseURL: "https://entjcompany-default-rtdb.firebaseio.com",
+  projectId: "entjcompany",
+  storageBucket: "entjcompany.firebasestorage.app",
+  messagingSenderId: "567861521069",
+  appId: "1:567861521069:web:084f0212f2931e2c9fb424",
+  measurementId: "G-0F57YWZJPS"
 };
-// ================================
 
-// 유틸리티 함수들
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const fmtMoney = n => '₩' + Math.round(n||0).toLocaleString('ko-KR');
@@ -478,25 +471,33 @@ const state = {
 let db = null;
 let dataRef = null;
 
-// Firebase 초기화 시도
 function initFirebase() {
   if (!USE_FIREBASE) {
-    console.log('로컬 모드로 실행 중');
+    console.log('🔧 로컬 모드로 실행 중 (USE_FIREBASE = false)');
     updateConnectionStatus('local');
     loadLocal();
     return false;
   }
 
   try {
-    // Firebase 초기화
     if (typeof firebase !== 'undefined') {
+      console.log('✅ Firebase SDK 로드 완료');
+      console.log('🔧 Firebase 초기화 중...', firebaseConfig);
+      
       firebase.initializeApp(firebaseConfig);
       db = firebase.database();
       dataRef = db.ref('tasks');
       
-      // 연결 상태 모니터링
+      console.log('✅ Firebase 초기화 완료');
+      console.log('🔧 데이터베이스 참조:', dataRef.toString());
+      
       db.ref('.info/connected').on('value', (snapshot) => {
         state.isFirebaseConnected = snapshot.val() === true;
+        if (state.isFirebaseConnected) {
+          console.log('✅ Firebase 연결 성공!');
+        } else {
+          console.log('❌ Firebase 연결 끊김');
+        }
         updateConnectionStatus(state.isFirebaseConnected ? 'connected' : 'disconnected');
       });
       
@@ -504,14 +505,16 @@ function initFirebase() {
       loadFromFirebase();
       return true;
     } else {
-      console.error('Firebase SDK가 로드되지 않았습니다');
+      console.error('❌ Firebase SDK가 로드되지 않았습니다');
+      console.log('인터넷 연결을 확인하거나 페이지를 새로고침하세요');
       state.useFirebase = false;
       updateConnectionStatus('local');
       loadLocal();
       return false;
     }
   } catch(error) {
-    console.error('Firebase 초기화 실패:', error);
+    console.error('❌ Firebase 초기화 실패:', error);
+    console.log('에러 상세:', error.message);
     state.useFirebase = false;
     updateConnectionStatus('local');
     loadLocal();
@@ -529,17 +532,17 @@ function updateConnectionStatus(status) {
   
   if (status === 'connected') {
     statusEl.classList.add('connected');
-    textEl.textContent = '실시간 동기화 활성화';
-    chipEl.textContent = '작업 대시보드 (Firebase 연동)';
-    modeInfo.textContent = '💡 표 셀 클릭 시 바로 수정 (Enter=저장, Esc=취소) | 🔄 실시간 동기화 활성화';
+    textEl.textContent = '🔥 실시간 동기화 활성화';
+    chipEl.textContent = '작업 대시보드 (실시간 동기화)';
+    modeInfo.textContent = '💡 표 셀 클릭 시 바로 수정 (Enter=저장, Esc=취소) | 🔄 모든 브라우저에서 실시간 동기화됩니다';
   } else if (status === 'disconnected') {
     statusEl.classList.add('disconnected');
-    textEl.textContent = '오프라인';
-    chipEl.textContent = '작업 대시보드 (Firebase)';
-    modeInfo.textContent = '💡 표 셀 클릭 시 바로 수정 (Enter=저장, Esc=취소) | ⚠️ 오프라인 모드';
+    textEl.textContent = '❌ 오프라인';
+    chipEl.textContent = '작업 대시보드 (오프라인)';
+    modeInfo.textContent = '💡 표 셀 클릭 시 바로 수정 (Enter=저장, Esc=취소) | ⚠️ 인터넷 연결을 확인하세요';
   } else {
     statusEl.classList.add('local');
-    textEl.textContent = '로컬 모드';
+    textEl.textContent = '💾 로컬 모드';
     chipEl.textContent = '작업 대시보드 (로컬 저장)';
     modeInfo.textContent = '💡 표 셀 클릭 시 바로 수정 (Enter=저장, Esc=취소) | 💾 로컬 저장소 사용 중';
   }
@@ -576,7 +579,6 @@ function seed(){
   ];
 }
 
-// 로컬 저장소 함수들
 function loadLocal(){
   try{
     const raw=localStorage.getItem(storageKey);
@@ -593,7 +595,6 @@ function saveLocal(){
   }
 }
 
-// Firebase 함수들
 function setupFirebaseListeners() {
   if (!dataRef) return;
   
@@ -628,15 +629,23 @@ function setupFirebaseListeners() {
 
 function saveToFirebase(row) {
   if (!state.useFirebase || !dataRef) {
+    console.log('💾 로컬 저장소에 저장 중...');
     saveLocal();
     return;
   }
   
   if (!row.id) return;
-  dataRef.child(row.id).set(row).catch(error => {
-    console.error('Firebase 저장 실패:', error);
-    alert('데이터 저장에 실패했습니다. 네트워크 연결을 확인해주세요.');
-  });
+  console.log('🔥 Firebase에 저장 중:', row.id, row.client);
+  dataRef.child(row.id).set(row)
+    .then(() => {
+      console.log('✅ Firebase 저장 완료:', row.id);
+    })
+    .catch(error => {
+      console.error('❌ Firebase 저장 실패:', error);
+      console.error('에러 코드:', error.code);
+      console.error('에러 메시지:', error.message);
+      alert('데이터 저장에 실패했습니다: ' + error.message);
+    });
 }
 
 function deleteFromFirebase(id) {
@@ -660,14 +669,12 @@ function loadFromFirebase() {
       state.rows = Object.values(data).map(mk);
       render();
     } else {
-      // Firebase에 데이터가 없으면 초기 데이터 생성
       seed();
       state.rows.forEach(row => saveToFirebase(row));
     }
   });
 }
 
-// 공통 함수들
 function getSearchHistory(){try{return JSON.parse(localStorage.getItem(searchHistoryKey)||'[]')}catch(e){return[]}}
 function saveSearchHistory(q){
   if(!q||!q.trim())return;
@@ -1054,9 +1061,7 @@ function bind(){
   document.onkeydown=e=>{if(e.key==='Escape'){closeAddModal(); closeBulkEditModal(); $('#chartModal').classList.remove('active')}};
 }
 
-// 초기화
 window.addEventListener('DOMContentLoaded', () => {
-  // 테마 설정 로드
   try{
     const raw=localStorage.getItem(storageKey);
     if(raw){const obj=JSON.parse(raw); state.prefs={...state.prefs,...(obj.prefs||{})};}
@@ -1064,13 +1069,10 @@ window.addEventListener('DOMContentLoaded', () => {
   
   applyTheme(state.prefs.theme||'auto');
   
-  // Firebase 초기화 시도
   const firebaseInitialized = initFirebase();
   
-  // 이벤트 바인딩
   bind();
   
-  // Firebase가 초기화되지 않았다면 로컬 모드로 실행
   if (!firebaseInitialized) {
     console.log('Firebase 초기화 실패, 로컬 모드로 실행');
   }
