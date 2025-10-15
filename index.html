@@ -799,11 +799,6 @@ function bind(){
   $('#chartModal').onclick=e=>{if(e.target===$('#chartModal'))$('#chartModal').classList.remove('active')};
   document.onkeydown=e=>{if(e.key==='Escape'){closeAddModal(); closeBulkEditModal(); $('#chartModal').classList.remove('active')}};
 }
-
-load(); bind(); render();
-</script>
-</body>
-</html>
 const firebaseConfig = {
   apiKey: "AIzaSyB123456EXAMPLE",
   authDomain: "entjcompany.firebaseapp.com",
@@ -813,3 +808,7 @@ const firebaseConfig = {
   messagingSenderId: "1234567890",
   appId: "1:1234567890:web:abcdef123456"
 };
+load(); bind(); render();
+</script>
+</body>
+</html>
