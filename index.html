@@ -808,6 +808,8 @@ const firebaseConfig = {
   messagingSenderId: "1234567890",
   appId: "1:1234567890:web:abcdef123456"
 };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 load(); bind(); render();
 </script>
 </body>
