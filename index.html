@@ -953,7 +953,7 @@ function renderPagination(totalPages) {
   prev.disabled = currentPage === 1;
   prev.onclick = () => {
     state.pagination.currentPage--;
-    render();
+    renderTableOnly();
   };
   c.appendChild(prev);
   
@@ -967,7 +967,7 @@ function renderPagination(totalPages) {
     b.textContent = i;
     b.onclick = () => {
       state.pagination.currentPage = i;
-      render();
+      renderTableOnly();
     };
     c.appendChild(b);
   }
@@ -978,7 +978,7 @@ function renderPagination(totalPages) {
   next.disabled = currentPage === totalPages;
   next.onclick = () => {
     state.pagination.currentPage++;
-    render();
+    renderTableOnly();
   };
   c.appendChild(next);
 }
@@ -1398,6 +1398,7 @@ function bindFilterEvents() {
   const qInput = $('#q');
   if (qInput) {
     let isComposing = false;
+    let searchTimeout = null;
     
     qInput.addEventListener('compositionstart', () => {
       isComposing = true;
@@ -1407,14 +1408,22 @@ function bindFilterEvents() {
       isComposing = false;
       state.filters[key].q = e.target.value;
       state.pagination.currentPage = 1;
-      render();
+      
+      if (searchTimeout) clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        renderTableOnly();
+      }, 100);
     });
     
     qInput.addEventListener('input', (e) => {
       if (!isComposing) {
         state.filters[key].q = e.target.value;
         state.pagination.currentPage = 1;
-        render();
+        
+        if (searchTimeout) clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          renderTableOnly();
+        }, 200);
       }
     });
   }
@@ -1424,7 +1433,7 @@ function bindFilterEvents() {
     fDate.onchange = e => {
       state.filters[key].date = e.target.value;
       state.pagination.currentPage = 1;
-      render();
+      renderTableOnly();
     };
   }
   
@@ -1433,7 +1442,7 @@ function bindFilterEvents() {
     sortSel.onchange = e => {
       state.filters[key].sort = e.target.value;
       state.pagination.currentPage = 1;
-      render();
+      renderTableOnly();
     };
   }
   
@@ -1442,7 +1451,7 @@ function bindFilterEvents() {
     fprod.onchange = () => {
       state.filters[key].product = fprod.value;
       state.pagination.currentPage = 1;
-      render();
+      renderTableOnly();
     };
   }
   
@@ -1451,7 +1460,7 @@ function bindFilterEvents() {
     fcat.onchange = () => {
       state.filters[key].category = fcat.value;
       state.pagination.currentPage = 1;
-      render();
+      renderTableOnly();
     };
   }
   
@@ -1460,7 +1469,7 @@ function bindFilterEvents() {
     fTax.onchange = e => {
       state.filters[key].tax = e.target.value;
       state.pagination.currentPage = 1;
-      render();
+      renderTableOnly();
     };
   }
   
@@ -1469,7 +1478,7 @@ function bindFilterEvents() {
     fDeadline.onchange = e => {
       state.filters[key].deadline = e.target.value;
       state.pagination.currentPage = 1;
-      render();
+      renderTableOnly();
     };
   }
   
@@ -1479,7 +1488,7 @@ function bindFilterEvents() {
       b.classList.add('active');
       state.filters[key].periodType = b.dataset.period;
       state.pagination.currentPage = 1;
-      render();
+      renderTableOnly();
     };
   });
   
@@ -1495,6 +1504,11 @@ function bindFilterEvents() {
 
 function render() {
   renderFilters();
+  renderTable();
+  renderKpis();
+}
+
+function renderTableOnly() {
   renderTable();
   renderKpis();
 }
@@ -1549,7 +1563,7 @@ function bindEvents() {
   $('#perPageSelect').onchange = e => {
     state.pagination.perPage = parseInt(e.target.value, 10);
     state.pagination.currentPage = 1;
-    render();
+    renderTableOnly();
   };
   
   $('#closeChartModal').onclick = () => $('#chartModal').classList.remove('active');
