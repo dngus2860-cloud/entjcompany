@@ -177,6 +177,7 @@
   .product-호올스 .bar{background:linear-gradient(180deg,#C4B5FD,#A78BFA)!important}
   .product-말차 .bar{background:linear-gradient(180deg,#10B981,#059669)!important}
   .product-블로그 .bar{background:linear-gradient(180deg,#3B82F6,#2563EB)!important}
+  .product-카인드 .bar{background:linear-gradient(180deg,#F59E0B,#D97706)!important}
 
   .monthly-summary{font-size:14px; line-height:1.8}
   .month-item{margin-bottom:8px; padding:8px 12px; background:var(--card2); border-radius:10px; border-left:3px solid var(--primary); transition:all .2s; cursor:pointer; display:flex; justify-content:space-between; align-items:center}
@@ -332,6 +333,19 @@
   </div>
 </div>
 
+<div class="modal-back" id="bulkEditModalBack" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="mh">
+      <strong>✏️ 일괄수정</strong>
+      <button class="btn small outline" onclick="closeBulkEditModal()">✕ 닫기</button>
+    </div>
+    <div class="mb">
+      <div class="muted" style="margin-bottom:16px">선택된 <strong id="bulkCountText">0</strong>개 항목을 일괄 수정합니다.</div>
+      <form id="bulkEditForm" class="form-grid"></form>
+    </div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -406,6 +420,7 @@ const CONFIGS = {
     name: '플레이스 작업 (배포)',
     path: 'place_distribute',
     fields: [
+      {key:'product', label:'상품', type:'select', options:['카인드','C_2','불금','신규']},
       {key:'client', label:'업체명', type:'text', required:true},
       {key:'url', label:'URL', type:'url'},
       {key:'category', label:'구분', type:'select', options:['정보성','후기성']},
@@ -414,7 +429,8 @@ const CONFIGS = {
       {key:'keywords', label:'키워드', type:'text'},
       {key:'startDate', label:'시작일', type:'date', required:true},
       {key:'endDate', label:'종료일', type:'date'},
-      {key:'cost', label:'작업비', type:'number'},
+      {key:'unitPrice', label:'단가', type:'number'},
+      {key:'cost', label:'작업비', type:'computed'},
       {key:'tax', label:'세금', type:'select', options:['발행','미발행']},
       {key:'note', label:'비고', type:'text'}
     ]
@@ -432,8 +448,8 @@ const CONFIGS = {
       {key:'endDate', label:'종료일', type:'date'},
       {key:'quantity', label:'수량', type:'number'},
       {key:'days', label:'일수', type:'number'},
-      {key:'unitPrice', label:'단가', type:'number'},
       {key:'totalQty', label:'총량', type:'computed'},
+      {key:'unitPrice', label:'단가', type:'number'},
       {key:'cost', label:'작업비', type:'computed'},
       {key:'tax', label:'세금', type:'select', options:['발행','미발행']},
       {key:'note', label:'비고', type:'text'}
@@ -590,9 +606,7 @@ function saveToFirebase(row, key) {
     })
     .catch(error => {
       console.error('❌ Firebase 저장 실패:', error);
-      console.error('에러 코드:', error.code);
-      console.error('에러 메시지:', error.message);
-      alert('데이터 저장에 실패했습니다: ' + error.message + '\n콘솔(F12)을 확인하세요.');
+      alert('데이터 저장에 실패했습니다: ' + error.message);
     });
 }
 
@@ -653,7 +667,7 @@ function applyFilters(rows) {
   
   if (f.q) {
     const q = f.q.toLowerCase();
-    arr = arr.filter(r => [r.client, r.keywords, r.mid, r.product, r.category, r.note].join(' ').toLowerCase().includes(q));
+    arr = arr.filter(r => [r.client, r.keywords, r.mid, r.url, r.product, r.category, r.note].join(' ').toLowerCase().includes(q));
   }
   
   if (f.product && f.product !== 'all') arr = arr.filter(r => r.product === f.product);
@@ -694,7 +708,7 @@ function renderFilters() {
   const container = $('#filtersContainer');
   
   let html = '<div class="filters">';
-  html += '<input id="q" placeholder="🔎 검색" autocomplete="off" value="' + (f.q || '') + '">';
+  html += '<div class="filter-input-wrapper"><input id="q" placeholder="🔎 검색: 업체명/키워드" autocomplete="off" value="' + (f.q || '').replace(/"/g, '&quot;') + '"></div>';
   
   config.fields.forEach(field => {
     if (field.type === 'select' && field.key !== 'tax' && (field.key === 'product' || field.key === 'category')) {
@@ -1067,7 +1081,7 @@ function drawPieChart(data) {
     return;
   }
   
-  const colors = {멘토스: '#8B5CF6', 호올스: '#A78BFA', 말차: '#10B981', 신규: '#6366f1', 블로그: '#3B82F6', 미분류: '#64748b'};
+  const colors = {멘토스: '#8B5CF6', 호올스: '#A78BFA', 말차: '#10B981', 신규: '#6366f1', 블로그: '#3B82F6', 카인드: '#F59E0B', 미분류: '#64748b'};
   const theme = document.documentElement.getAttribute('data-theme');
   const bc = theme === 'light' ? '#e2e8f0' : '#2a3551';
   let ca = -Math.PI / 2;
@@ -1100,7 +1114,7 @@ function drawPieChart(data) {
 }
 
 function renderPieLegend(data) {
-  const colors = {멘토스: '#8B5CF6', 호올스: '#A78BFA', 말차: '#10B981', 신규: '#6366f1', 블로그: '#3B82F6', 미분류: '#64748b'};
+  const colors = {멘토스: '#8B5CF6', 호올스: '#A78BFA', 말차: '#10B981', 신규: '#6366f1', 블로그: '#3B82F6', 카인드: '#F59E0B', 미분류: '#64748b'};
   $('#pieLegend').innerHTML = data.map(i => `<div class="pie-legend-item">
     <div class="pie-legend-color" style="background:${colors[i.product] || '#64748b'}"></div>
     <div class="pie-legend-info">
@@ -1113,6 +1127,101 @@ function renderPieLegend(data) {
 function updateBulkEditBar() {
   $('#bulkEditBar').classList.toggle('active', state.selected.size > 0);
   $('#selectedCount').textContent = `${state.selected.size}개 선택`;
+}
+
+function openBulkEditModal() {
+  if (!state.selected.size) return alert('항목을 선택하세요');
+  
+  const key = getCurrentKey();
+  const config = getCurrentConfig();
+  const selected = state.rows[key].filter(r => state.selected.has(r.id));
+  
+  $('#bulkCountText').textContent = state.selected.size;
+  
+  const form = $('#bulkEditForm');
+  let html = '';
+  
+  config.fields.forEach(field => {
+    if (field.type === 'computed') return;
+    
+    const divClass = ['client', 'mid', 'url', 'keywords', 'note'].includes(field.key) ? 'full' : '';
+    
+    html += `<div class="${divClass}"><label>${field.label}</label>`;
+    
+    if (field.type === 'select') {
+      html += `<select id="b${field.key}">`;
+      html += '<option value="">변경 안함</option>';
+      field.options.forEach(opt => {
+        html += `<option>${opt}</option>`;
+      });
+      html += '</select>';
+    } else {
+      const inputType = field.type === 'number' ? 'number' : field.type === 'url' ? 'url' : field.type === 'date' ? 'date' : 'text';
+      html += `<input id="b${field.key}" type="${inputType}">`;
+    }
+    
+    html += '</div>';
+  });
+  
+  html += `<div class="full" style="display:flex; gap:12px; justify-content:flex-end; margin-top:8px">
+    <button type="button" class="btn outline" onclick="resetBulkForm()">🔄 초기화</button>
+    <button type="submit" class="btn">✓ 일괄 적용</button>
+  </div>`;
+  
+  form.innerHTML = html;
+  $('#bulkEditModalBack').classList.add('active');
+  
+  form.onsubmit = e => {
+    e.preventDefault();
+    applyBulkEdit();
+  };
+}
+
+function closeBulkEditModal() {
+  $('#bulkEditModalBack').classList.remove('active');
+}
+
+function resetBulkForm() {
+  $('#bulkEditForm').reset();
+}
+
+function applyBulkEdit() {
+  const key = getCurrentKey();
+  const config = getCurrentConfig();
+  const updates = {};
+  
+  config.fields.forEach(field => {
+    if (field.type === 'computed') return;
+    const el = $(`#b${field.key}`);
+    if (el && el.value) {
+      updates[field.key] = field.type === 'number' ? parseNum(el.value) : el.value;
+    }
+  });
+  
+  if (!Object.keys(updates).length) return alert('변경할 내용을 입력하세요');
+  
+  state.rows[key].forEach(r => {
+    if (state.selected.has(r.id)) {
+      Object.assign(r, updates);
+      
+      if (config.fields.find(f => f.key === 'totalQty' && f.type === 'computed')) {
+        if (r.units !== undefined && r.days !== undefined) {
+          r.totalQty = (r.units || 0) * (r.days || 0);
+        } else if (r.quantity !== undefined && r.days !== undefined) {
+          r.totalQty = (r.quantity || 0) * (r.days || 0);
+        }
+      }
+      if (config.fields.find(f => f.key === 'cost' && f.type === 'computed')) {
+        r.cost = (r.totalQty || 0) * (r.unitPrice || 0);
+      }
+      
+      saveToFirebase(r, key);
+    }
+  });
+  
+  render();
+  closeBulkEditModal();
+  alert(`${state.selected.size}개 수정 완료`);
 }
 
 function openAddModal() {
@@ -1298,6 +1407,7 @@ function bindEvents() {
   });
   
   $('#openAddModalBtn').onclick = openAddModal;
+  $('#bulkEditBtn').onclick = openBulkEditModal;
   
   $('#removeSelectedBtn').onclick = () => {
     if (!state.selected.size) return alert('항목을 선택하세요');
@@ -1338,6 +1448,7 @@ function bindEvents() {
   document.onkeydown = e => {
     if (e.key === 'Escape') {
       closeAddModal();
+      closeBulkEditModal();
       $('#chartModal').classList.remove('active');
     }
   };
