@@ -25,7 +25,7 @@
   body{font-family:'Pretendard',-apple-system,system-ui,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif; line-height:1.6}
   img,canvas,svg,video{max-width:100%; height:auto; display:block}
 
-  .wrap{max-width:1400px; margin:0 auto; padding:24px; display:grid; gap:20px}
+  .wrap{max-width:1600px; margin:0 auto; padding:24px; display:grid; gap:20px}
 
   .connection-status {
     position: fixed;
@@ -86,31 +86,31 @@
   .btn.danger{background:#ef4444}
   .btn.small{padding:8px 14px; font-size:13px}
 
+  /* 탭 스타일 */
+  .tabs{display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap}
+  .tab{padding:12px 24px; background:var(--card); border:2px solid var(--border); border-radius:12px;
+    cursor:pointer; font-weight:600; font-size:14px; transition:all .3s; color:var(--muted)}
+  .tab:hover{border-color:var(--primary-light); background:var(--card2)}
+  .tab.active{background:var(--primary); color:#fff; border-color:var(--primary)}
+  .subtabs{display:flex; gap:6px; margin-left:12px}
+  .subtab{padding:8px 16px; background:var(--card2); border:2px solid var(--border); border-radius:10px;
+    cursor:pointer; font-size:13px; font-weight:600; transition:all .3s; color:var(--muted)}
+  .subtab:hover{border-color:var(--primary-light)}
+  .subtab.active{background:var(--primary-light); color:#fff; border-color:var(--primary-light)}
+
   .panel{background:var(--panel); border:1px solid var(--border); border-radius:20px; box-shadow:var(--shadow); overflow:hidden}
   .panel .h{padding:20px 28px; border-bottom:1px solid var(--border); display:flex;
     align-items:center; justify-content:space-between; background:linear-gradient(to right, rgba(99,102,241,.05), transparent)}
   .panel .h strong{font-size:18px; font-weight:700}
   .panel .b{padding:24px 28px}
 
-  .filters{display:grid; grid-template-columns:1.4fr repeat(3,1fr) .9fr 1fr; gap:12px}
+  .filters{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px}
   @media (max-width:1100px){.filters{grid-template-columns:1fr 1fr}}
 
   .filter-input-wrapper{position:relative}
   input, select{width:100%; padding:12px 16px; border-radius:12px; border:2px solid var(--border);
     background:var(--card); color:var(--text); font-size:14px; font-weight:500; transition:all .3s}
   input:focus, select:focus{outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(99,102,241,.1)}
-
-  .autocomplete-dropdown{position:absolute; top:100%; left:0; right:0; background:var(--panel);
-    border:2px solid var(--border); border-radius:12px; margin-top:4px; max-height:250px;
-    overflow-y:auto; z-index:100; box-shadow:var(--shadow); display:none}
-  .autocomplete-dropdown.active{display:block}
-  .autocomplete-item{padding:10px 16px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all .2s; border-bottom:1px solid var(--border)}
-  .autocomplete-item:last-child{border-bottom:none}
-  .autocomplete-item:hover{background:var(--card2)}
-  .autocomplete-text{flex:1; font-size:14px}
-  .autocomplete-delete{width:20px; height:20px; border-radius:50%; background:transparent; color:var(--muted); border:none; cursor:pointer; font-size:16px; opacity:0; transition:all .2s}
-  .autocomplete-item:hover .autocomplete-delete{opacity:1}
-  .autocomplete-delete:hover{background:var(--red); color:#fff; transform:scale(1.1)}
 
   .date-filter-wrap{display:flex; flex-direction:column; gap:6px}
   .period-btns{display:flex; gap:6px}
@@ -138,7 +138,7 @@
   .url a:hover{color:var(--primary); text-decoration:underline}
   .select-row{width:18px; height:18px; cursor:pointer}
 
-  tr.deadline-warning{border-left:4px solid var(--amber); background:rgba(245,158,11,.1); animation:pulse 2s ease-in-out infinite}
+  tr.deadline-warning{border-left:4px solid var(--amber); background:rgba(245,158,11,.1)}
 
   .cell-editor{width:100%; border-radius:8px; padding:8px 12px; border:2px solid var(--primary); background:var(--card); color:var(--text); font-size:14px}
   .badge-yes{color:var(--green); font-weight:700}
@@ -159,33 +159,9 @@
   .per-page-selector{display:flex; align-items:center; gap:10px}
   .per-page-selector select{width:auto; padding:8px 12px}
 
-  .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
-  @media (max-width:800px){.kpis{grid-template-columns:repeat(2,1fr)}}
-  .kpi{padding:18px; background:var(--card2); border:2px solid var(--border); border-radius:16px; transition:all .3s; position:relative; overflow:hidden}
-  .kpi::before{content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--gradient-1); opacity:0; transition:opacity .3s}
-  .kpi:hover{border-color:var(--primary); transform:translateY(-2px)}
-  .kpi:hover::before{opacity:1}
-  .kpi .v{font-weight:900; font-size:24px; background:var(--gradient-1); -webkit-background-clip:text; -webkit-text-fill-color:transparent}
-
-  .bars{display:flex; align-items:flex-end; gap:10px; height:180px; padding:12px; border:2px solid var(--border); border-radius:16px; background:var(--card2); overflow-x:auto}
-  .bars .col{flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; min-width:60px}
-  .bars .bar{width:100%; max-width:50px; background:var(--gradient-1); border:2px solid var(--border); border-radius:12px 12px 6px 6px; height:10%; box-shadow:0 4px 12px rgba(99,102,241,.2); transition:all .3s}
-  .bars .col:hover .bar{transform:translateY(-4px)}
-  .bar-value{font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px}
-  .note{font-size:11px; color:var(--muted); font-weight:600}
-  .product-멘토스 .bar{background:linear-gradient(180deg,#8B5CF6,#7C3AED)!important}
-  .product-호올스 .bar{background:linear-gradient(180deg,#C4B5FD,#A78BFA)!important}
-  .product-말차 .bar{background:linear-gradient(180deg,#10B981,#059669)!important}
-
-  .monthly-summary{font-size:14px; line-height:1.8}
-  .month-item{margin-bottom:8px; padding:8px 12px; background:var(--card2); border-radius:10px; border-left:3px solid var(--primary); transition:all .2s; cursor:pointer; display:flex; justify-content:space-between; align-items:center}
-  .month-item:hover{background:var(--card); transform:translateX(4px)}
-  .month-item-icon{color:var(--primary); font-size:16px; opacity:.6; transition:opacity .2s}
-  .month-item:hover .month-item-icon{opacity:1}
-
   .modal-back{position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:1000; padding:16px}
   .modal-back.active{display:flex}
-  .modal{background:var(--panel); border:2px solid var(--border); border-radius:24px; box-shadow:0 30px 80px rgba(0,0,0,.6); width:800px; max-width:100%; max-height:90vh; overflow:auto; animation:modalIn .3s}
+  .modal{background:var(--panel); border:2px solid var(--border); border-radius:24px; box-shadow:0 30px 80px rgba(0,0,0,.6); width:900px; max-width:100%; max-height:90vh; overflow:auto; animation:modalIn .3s}
   @keyframes modalIn{from{opacity:0; transform:scale(.9) translateY(20px)} to{opacity:1; transform:scale(1) translateY(0)}}
   .modal .mh{padding:24px 28px; border-bottom:2px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:linear-gradient(to right, rgba(99,102,241,.05), transparent)}
   .modal .mh strong{font-size:20px; font-weight:800}
@@ -193,19 +169,6 @@
   .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px}
   .form-grid .full{grid-column:1/-1}
   .form-grid label{display:block; font-size:13px; font-weight:600; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:.5px}
-
-  .chart-modal-content{width:600px}
-  .chart-modal-close{position:absolute; top:20px; right:20px; width:32px; height:32px; border-radius:50%; background:var(--card2); border:2px solid var(--border); color:var(--text); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; transition:all .2s}
-  .chart-modal-close:hover{background:var(--red); color:#fff; transform:rotate(90deg)}
-  .chart-title{font-size:20px; font-weight:800; margin-bottom:24px; text-align:center}
-  .pie-chart-container{display:flex; justify-content:center; margin:20px 0}
-  .pie-legend{display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:24px}
-  .pie-legend-item{display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--card2); border-radius:10px; transition:all .2s}
-  .pie-legend-item:hover{background:var(--card); transform:translateX(2px)}
-  .pie-legend-color{width:20px; height:20px; border-radius:6px; border:2px solid var(--border)}
-  .pie-legend-info{flex:1}
-  .pie-legend-label{font-size:13px; font-weight:600}
-  .pie-legend-value{font-size:12px; color:var(--muted)}
 </style>
 </head>
 <body>
@@ -229,51 +192,29 @@
     </div>
   </header>
 
+  <div class="tabs">
+    <div class="tab active" data-type="place">
+      📍 플레이스 작업
+    </div>
+    <div class="subtabs" id="placeSubtabs">
+      <div class="subtab active" data-subtype="reward">리워드</div>
+      <div class="subtab" data-subtype="distribute">배포</div>
+    </div>
+    <div class="tab" data-type="blog">
+      📝 블로그 작업
+    </div>
+  </div>
+
   <section class="panel">
     <div class="h">
-      <strong>🔍 필터 & 등록</strong>
+      <strong id="panelTitle">🔍 필터 & 등록</strong>
       <div class="toolbar">
         <button class="btn small" id="openAddModalBtn">➕ 새 항목</button>
         <button class="btn danger small" id="removeSelectedBtn">🗑️ 선택 삭제</button>
       </div>
     </div>
     <div class="b">
-      <div class="filters">
-        <div class="filter-input-wrapper" id="qWrapper">
-          <input id="q" placeholder="🔎 검색: 업체명/키워드/mid" autocomplete="off">
-          <div class="autocomplete-dropdown" id="qAutocomplete"></div>
-        </div>
-        <select id="fProduct">
-          <option value="all">상품: 전체</option>
-          <option>멘토스</option><option>말차</option><option>호올스</option><option>신규</option>
-        </select>
-        <select id="fCategory">
-          <option value="all">구분: 전체</option>
-          <option>트래픽</option><option>저장</option><option>길찾기</option><option>영수증</option>
-        </select>
-        <select id="fTax">
-          <option value="all">세금계산서: 전체</option>
-          <option value="yes">발행</option><option value="no">미발행</option>
-        </select>
-        <div class="date-filter-wrap">
-          <input type="date" id="fDate" autocomplete="off">
-          <div class="period-btns">
-            <button class="period-btn active" data-period="day">일별</button>
-            <button class="period-btn" data-period="week">주별</button>
-            <button class="period-btn" data-period="month">월별</button>
-          </div>
-        </div>
-        <select id="sortSel">
-          <option value="date_desc">정렬: 최신일자</option>
-          <option value="date_asc">정렬: 오래된일자</option>
-          <option value="cost_desc">정렬: 작업비 ⬇</option>
-          <option value="cost_asc">정렬: 작업비 ⬆</option>
-          <option value="client_asc">정렬: 업체명 (가→하)</option>
-        </select>
-        <div class="filter-reset-all">
-          <button class="btn small outline" id="resetFiltersBtn">🔄 필터 초기화</button>
-        </div>
-      </div>
+      <div id="filtersContainer"></div>
       <div class="sep"></div>
       <div class="muted" id="modeInfo">💡 표 셀 클릭 시 바로 수정 (Enter=저장, Esc=취소)</div>
     </div>
@@ -281,7 +222,7 @@
 
   <section class="panel">
     <div class="h">
-      <strong>📋 작업 목록</strong>
+      <strong id="listTitle">📋 작업 목록</strong>
       <span class="muted" id="countInfo">0건</span>
     </div>
     <div class="b">
@@ -292,15 +233,7 @@
 
       <div class="table-wrap">
         <table id="tbl">
-          <thead>
-            <tr>
-              <th class="center"><input type="checkbox" id="chkAll" class="select-row" aria-label="전체 선택"></th>
-              <th>상품</th><th>구분</th><th>업체명</th><th>mid</th><th>키워드</th>
-              <th>시작일</th><th>종료일</th><th class="num">일타</th><th class="num">일수</th>
-              <th class="num">단가</th><th class="num">총량</th><th class="num">작업비</th>
-              <th class="center">세금</th><th>비고</th><th class="center">⚙️</th>
-            </tr>
-          </thead>
+          <thead id="thead"></thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
@@ -318,114 +251,16 @@
       </div>
     </div>
   </section>
-
-  <section class="panel">
-    <div class="h"><strong>📊 데이터 요약</strong></div>
-    <div class="b">
-      <div class="kpis">
-        <div class="kpi"><div class="muted">총 건수</div><div class="v" id="kpiCount">0</div></div>
-        <div class="kpi"><div class="muted">총 작업량</div><div class="v" id="kpiQty">0</div></div>
-        <div class="kpi"><div class="muted">총 작업비</div><div class="v" id="kpiCost">₩0</div></div>
-        <div class="kpi"><div class="muted">평균 단가</div><div class="v" id="kpiAvg">₩0</div></div>
-      </div>
-      <div class="sep"></div>
-      <div class="toolbar"><strong>📈 상품별 총 작업비</strong></div>
-      <div class="bars" id="barsByProduct"></div>
-      <div class="sep"></div>
-      <div class="toolbar"><strong>💰 월 총 작업비</strong><span class="note">(클릭하여 상세 보기)</span></div>
-      <div class="monthly-summary" id="monthlyCost"></div>
-    </div>
-  </section>
-</div>
-
-<div class="modal-back" id="chartModal" role="dialog" aria-modal="true" aria-labelledby="chartTitle">
-  <div class="modal chart-modal-content">
-    <button class="chart-modal-close" id="closeChartModal" aria-label="차트 닫기">✕</button>
-    <div class="chart-title" id="chartTitle">월별 상품 분석</div>
-    <div class="pie-chart-container">
-      <canvas id="pieChart" width="300" height="300"></canvas>
-    </div>
-    <div class="pie-legend" id="pieLegend"></div>
-  </div>
 </div>
 
 <div class="modal-back" id="addModalBack" role="dialog" aria-modal="true">
   <div class="modal">
     <div class="mh">
-      <strong>➕ 새 항목 등록</strong>
+      <strong id="modalTitle">➕ 새 항목 등록</strong>
       <button class="btn small outline" onclick="closeAddModal()">✕ 닫기</button>
     </div>
     <div class="mb">
-      <form id="addForm" class="form-grid">
-        <div><label>상품</label>
-          <select id="aProduct" required>
-            <option value="">선택</option>
-            <option>멘토스</option><option>말차</option><option>호올스</option><option>신규</option>
-          </select>
-        </div>
-        <div><label>구분</label>
-          <select id="aCategory" required>
-            <option value="">선택</option>
-            <option>트래픽</option><option>저장</option><option>길찾기</option><option>영수증</option>
-          </select>
-        </div>
-        <div class="full"><label>업체명</label><input id="aClient" required></div>
-        <div class="full"><label>mid(URL)</label><input id="aMid" type="url"></div>
-        <div class="full"><label>키워드</label><input id="aKeywords"></div>
-        <div><label>시작일</label><input id="aStartDate" type="date" required></div>
-        <div><label>종료일</label><input id="aEndDate" type="date"></div>
-        <div><label>일타</label><input id="aUnits" type="number" min="0"></div>
-        <div><label>일수</label><input id="aDays" type="number" min="0"></div>
-        <div><label>단가</label><input id="aUnitPrice" type="number" step="any" min="0"></div>
-        <div><label>세금계산서</label>
-          <select id="aTax"><option>미발행</option><option>발행</option></select>
-        </div>
-        <div class="full"><label>비고</label><input id="aNote"></div>
-        <div class="full" style="display:flex; gap:12px; justify-content:flex-end; margin-top:8px">
-          <button type="button" class="btn outline" onclick="resetAddForm()">🔄 초기화</button>
-          <button type="submit" class="btn">✓ 등록</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<div class="modal-back" id="bulkEditModalBack" role="dialog" aria-modal="true">
-  <div class="modal">
-    <div class="mh">
-      <strong>✏️ 일괄수정</strong>
-      <button class="btn small outline" onclick="closeBulkEditModal()">✕ 닫기</button>
-    </div>
-    <div class="mb">
-      <div class="muted" style="margin-bottom:16px">선택된 <strong id="bulkCountText">0</strong>개 항목을 일괄 수정합니다.</div>
-      <form id="bulkEditForm" class="form-grid">
-        <div><label>상품</label>
-          <select id="bProduct"><option value="">변경 안함</option>
-            <option>멘토스</option><option>말차</option><option>호올스</option><option>신규</option>
-          </select>
-        </div>
-        <div><label>구분</label>
-          <select id="bCategory"><option value="">변경 안함</option>
-            <option>트래픽</option><option>저장</option><option>길찾기</option><option>영수증</option>
-          </select>
-        </div>
-        <div class="full"><label>업체명</label><input id="bClient"></div>
-        <div class="full"><label>mid(URL)</label><input id="bMid" type="url"></div>
-        <div class="full"><label>키워드</label><input id="bKeywords"></div>
-        <div><label>시작일</label><input id="bStartDate" type="date"></div>
-        <div><label>종료일</label><input id="bEndDate" type="date"></div>
-        <div><label>일타</label><input id="bUnits" type="number" min="0"></div>
-        <div><label>일수</label><input id="bDays" type="number" min="0"></div>
-        <div><label>단가</label><input id="bUnitPrice" type="number" step="any" min="0"></div>
-        <div><label>세금계산서</label>
-          <select id="bTax"><option value="">변경 안함</option><option>발행</option><option>미발행</option></select>
-        </div>
-        <div class="full"><label>비고</label><input id="bNote"></div>
-        <div class="full" style="display:flex; gap:12px; justify-content:flex-end; margin-top:8px">
-          <button type="button" class="btn outline" onclick="resetBulkForm()">🔄 초기화</button>
-          <button type="submit" class="btn">✓ 일괄 적용</button>
-        </div>
-      </form>
+      <form id="addForm" class="form-grid"></form>
     </div>
   </div>
 </div>
@@ -435,7 +270,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script>
-// ========== Firebase 설정 ==========
 const USE_FIREBASE = true;
 
 const firebaseConfig = {
@@ -456,12 +290,14 @@ const parseNum = v => v===''||v==null? null : (isNaN(Number(v))? null : Number(v
 const toISO = d => {if(!d)return''; const z=new Date(d); return new Date(z - z.getTimezoneOffset()*60000).toISOString().slice(0,10)};
 const today = () => toISO(new Date());
 
-const storageKey = 'ntz-company-ops-v4';
-const searchHistoryKey = 'ntz-search-history';
+const storageKey = 'ntz-company-ops-v5';
+
 const state = {
-  rows: [],
+  currentType: 'place',
+  currentSubtype: 'reward',
+  rows: {},
   prefs: {theme:'auto'},
-  filters: {q:'', product:'all', category:'all', tax:'all', date:'', periodType:'day', sort:'date_desc'},
+  filters: {},
   selected: new Set(),
   pagination: {currentPage:1, perPage:30},
   isFirebaseConnected: false,
@@ -469,55 +305,118 @@ const state = {
 };
 
 let db = null;
-let dataRef = null;
+let dataRefs = {};
+
+const CONFIGS = {
+  place_reward: {
+    name: '플레이스 작업 (리워드)',
+    path: 'place_reward',
+    fields: [
+      {key:'product', label:'상품', type:'select', options:['멘토스','호올스','말차','신규','없음']},
+      {key:'category', label:'구분', type:'select', options:['트래픽','저장','길찾기','영수증']},
+      {key:'client', label:'업체명', type:'text'},
+      {key:'mid', label:'Mid', type:'url'},
+      {key:'keywords', label:'키워드', type:'text'},
+      {key:'startDate', label:'시작일', type:'date'},
+      {key:'endDate', label:'종료일', type:'date'},
+      {key:'units', label:'일타', type:'number'},
+      {key:'days', label:'일수', type:'number'},
+      {key:'unitPrice', label:'단가', type:'number'},
+      {key:'totalQty', label:'총량', type:'computed'},
+      {key:'cost', label:'작업비', type:'computed'},
+      {key:'tax', label:'세금', type:'select', options:['발행','미발행']},
+      {key:'note', label:'비고', type:'text'}
+    ]
+  },
+  place_distribute: {
+    name: '플레이스 작업 (배포)',
+    path: 'place_distribute',
+    fields: [
+      {key:'client', label:'업체명', type:'text'},
+      {key:'url', label:'URL', type:'url'},
+      {key:'category', label:'구분', type:'select', options:['정보성','후기성']},
+      {key:'totalQty', label:'총 수량', type:'number'},
+      {key:'dailyRelease', label:'일 발행', type:'number'},
+      {key:'keywords', label:'키워드', type:'text'},
+      {key:'startDate', label:'시작일', type:'date'},
+      {key:'endDate', label:'종료일', type:'date'},
+      {key:'cost', label:'작업비', type:'number'},
+      {key:'tax', label:'세금', type:'select', options:['발행','미발행']},
+      {key:'note', label:'비고', type:'text'}
+    ]
+  },
+  blog: {
+    name: '블로그 작업',
+    path: 'blog',
+    fields: [
+      {key:'product', label:'상품', type:'select', options:['블로그','카페','체험단','언론기사']},
+      {key:'category', label:'구분', type:'select', options:['블로그리뷰','단순배포','건바이','월보장','일반형','프리미엄형','릴스']},
+      {key:'client', label:'업체명', type:'text'},
+      {key:'mid', label:'Mid', type:'url'},
+      {key:'keywords', label:'키워드', type:'text'},
+      {key:'dateRange', label:'시작일~종료일', type:'daterange'},
+      {key:'quantity', label:'수량', type:'number'},
+      {key:'days', label:'일수', type:'number'},
+      {key:'unitPrice', label:'단가', type:'number'},
+      {key:'totalQty', label:'총량', type:'computed'},
+      {key:'cost', label:'작업비', type:'computed'},
+      {key:'tax', label:'세금', type:'select', options:['발행','미발행']},
+      {key:'note', label:'비고', type:'text'}
+    ]
+  }
+};
+
+function getCurrentConfig() {
+  const key = state.currentType === 'place' ? `place_${state.currentSubtype}` : state.currentType;
+  return CONFIGS[key];
+}
+
+function getCurrentKey() {
+  return state.currentType === 'place' ? `place_${state.currentSubtype}` : state.currentType;
+}
 
 function initFirebase() {
   if (!USE_FIREBASE) {
-    console.log('🔧 로컬 모드로 실행 중 (USE_FIREBASE = false)');
+    console.log('🔧 로컬 모드로 실행 중');
     updateConnectionStatus('local');
-    loadLocal();
+    Object.keys(CONFIGS).forEach(key => {
+      state.rows[key] = [];
+      state.filters[key] = {};
+    });
+    render();
     return false;
   }
 
   try {
     if (typeof firebase !== 'undefined') {
       console.log('✅ Firebase SDK 로드 완료');
-      console.log('🔧 Firebase 초기화 중...', firebaseConfig);
-      
       firebase.initializeApp(firebaseConfig);
       db = firebase.database();
-      dataRef = db.ref('tasks');
       
-      console.log('✅ Firebase 초기화 완료');
-      console.log('🔧 데이터베이스 참조:', dataRef.toString());
+      Object.keys(CONFIGS).forEach(key => {
+        dataRefs[key] = db.ref(CONFIGS[key].path);
+        state.rows[key] = [];
+        state.filters[key] = {};
+        setupFirebaseListeners(key);
+        loadFromFirebase(key);
+      });
       
       db.ref('.info/connected').on('value', (snapshot) => {
         state.isFirebaseConnected = snapshot.val() === true;
-        if (state.isFirebaseConnected) {
-          console.log('✅ Firebase 연결 성공!');
-        } else {
-          console.log('❌ Firebase 연결 끊김');
-        }
         updateConnectionStatus(state.isFirebaseConnected ? 'connected' : 'disconnected');
       });
       
-      setupFirebaseListeners();
-      loadFromFirebase();
       return true;
     } else {
       console.error('❌ Firebase SDK가 로드되지 않았습니다');
-      console.log('인터넷 연결을 확인하거나 페이지를 새로고침하세요');
       state.useFirebase = false;
       updateConnectionStatus('local');
-      loadLocal();
       return false;
     }
   } catch(error) {
     console.error('❌ Firebase 초기화 실패:', error);
-    console.log('에러 상세:', error.message);
     state.useFirebase = false;
     updateConnectionStatus('local');
-    loadLocal();
     return false;
   }
 }
@@ -526,7 +425,6 @@ function updateConnectionStatus(status) {
   const statusEl = $('#connectionStatus');
   const textEl = $('#connectionText');
   const chipEl = $('#modeChip');
-  const modeInfo = $('#modeInfo');
   
   statusEl.classList.remove('connected', 'disconnected', 'local');
   
@@ -534,548 +432,511 @@ function updateConnectionStatus(status) {
     statusEl.classList.add('connected');
     textEl.textContent = '🔥 실시간 동기화 활성화';
     chipEl.textContent = '작업 대시보드 (실시간 동기화)';
-    modeInfo.textContent = '💡 표 셀 클릭 시 바로 수정 (Enter=저장, Esc=취소) | 🔄 모든 브라우저에서 실시간 동기화됩니다';
   } else if (status === 'disconnected') {
     statusEl.classList.add('disconnected');
     textEl.textContent = '❌ 오프라인';
     chipEl.textContent = '작업 대시보드 (오프라인)';
-    modeInfo.textContent = '💡 표 셀 클릭 시 바로 수정 (Enter=저장, Esc=취소) | ⚠️ 인터넷 연결을 확인하세요';
   } else {
     statusEl.classList.add('local');
     textEl.textContent = '💾 로컬 모드';
     chipEl.textContent = '작업 대시보드 (로컬 저장)';
-    modeInfo.textContent = '💡 표 셀 클릭 시 바로 수정 (Enter=저장, Esc=취소) | 💾 로컬 저장소 사용 중';
   }
 }
 
-function getWeekNumber(d){
-  const date=new Date(d); date.setHours(0,0,0,0);
-  date.setDate(date.getDate()+4-(date.getDay()||7));
-  const yearStart=new Date(date.getFullYear(),0,1);
-  return {year:date.getFullYear(), week:Math.ceil((((date-yearStart)/86400000)+1)/7)};
-}
-
-function getYearMonth(d){const date=new Date(d); return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`}
-
-function mk(p){
-  const id=p.id || 'r_'+Math.random().toString(36).slice(2,9);
-  const createdAt=p.createdAt || new Date().toISOString();
-  const row={id, createdAt, ...p};
-  row.totalQty=(row.units||0)*(row.days||0);
-  row.cost=row.totalQty*(row.unitPrice||0);
+function mk(p, config) {
+  const id = p.id || 'r_'+Math.random().toString(36).slice(2,9);
+  const createdAt = p.createdAt || new Date().toISOString();
+  const row = {id, createdAt, ...p};
+  
+  if (config.fields.find(f => f.key === 'totalQty' && f.type === 'computed')) {
+    if (row.units !== undefined && row.days !== undefined) {
+      row.totalQty = (row.units||0) * (row.days||0);
+    } else if (row.quantity !== undefined && row.days !== undefined) {
+      row.totalQty = (row.quantity||0) * (row.days||0);
+    }
+  }
+  
+  if (config.fields.find(f => f.key === 'cost' && f.type === 'computed')) {
+    if (row.cost === undefined || row.cost === null) {
+      row.cost = (row.totalQty||0) * (row.unitPrice||0);
+    }
+  }
+  
   return row;
 }
 
-function seed(){
-  state.rows=[
-    mk({product:'멘토스',category:'트래픽',client:'아이프린스 울산점',mid:'https://place.naver.com/place/zzz',
-      keywords:'동탄 휴대폰',startDate:'2025-09-10',endDate:'2025-09-17',units:100,days:7,unitPrice:27.5,tax:'발행'}),
-    mk({product:'호올스',category:'저장',client:'청주에어컨설치',mid:'https://place.naver.com/place/abc',
-      keywords:'청주 에어컨',startDate:'2025-09-12',endDate:'2025-09-19',units:100,days:7,unitPrice:27.5,tax:'미발행'}),
-    mk({product:'말차',category:'길찾기',client:'부산치과',mid:'https://place.naver.com/hospital/yyy',
-      keywords:'송파치과',startDate:'2025-09-16',endDate:'2025-10-06',units:5,days:20,unitPrice:2090,tax:'미발행'}),
-    mk({product:'신규',category:'영수증',client:'브루브루',mid:'https://place.naver.com/restaurant/xxx',
-      keywords:'포토리뷰',startDate:'2025-10-06',endDate:'2025-11-05',units:5,days:30,unitPrice:2090,tax:'미발행'})
-  ];
-}
-
-function loadLocal(){
-  try{
-    const raw=localStorage.getItem(storageKey);
-    if(raw){const obj=JSON.parse(raw); state.rows=obj.rows||[]; state.prefs={...state.prefs,...(obj.prefs||{})}}
-    if(!state.rows.length)seed();
-  }catch(e){seed()}
-  applyTheme(state.prefs.theme||'auto');
-  render();
-}
-
-function saveLocal(){
-  if(!state.useFirebase) {
-    localStorage.setItem(storageKey,JSON.stringify({rows:state.rows,prefs:state.prefs}));
-  }
-}
-
-function setupFirebaseListeners() {
-  if (!dataRef) return;
+function setupFirebaseListeners(key) {
+  if (!dataRefs[key]) return;
   
-  dataRef.on('child_added', (snapshot) => {
+  dataRefs[key].on('child_added', (snapshot) => {
     const data = snapshot.val();
-    if (data && !state.rows.find(r => r.id === data.id)) {
-      state.rows.unshift(mk(data));
-      render();
+    if (data && !state.rows[key].find(r => r.id === data.id)) {
+      state.rows[key].unshift(mk(data, CONFIGS[key]));
+      if (getCurrentKey() === key) render();
     }
   });
 
-  dataRef.on('child_changed', (snapshot) => {
+  dataRefs[key].on('child_changed', (snapshot) => {
     const data = snapshot.val();
     if (data) {
-      const index = state.rows.findIndex(r => r.id === data.id);
+      const index = state.rows[key].findIndex(r => r.id === data.id);
       if (index !== -1) {
-        state.rows[index] = mk(data);
-        render();
+        state.rows[key][index] = mk(data, CONFIGS[key]);
+        if (getCurrentKey() === key) render();
       }
     }
   });
 
-  dataRef.on('child_removed', (snapshot) => {
+  dataRefs[key].on('child_removed', (snapshot) => {
     const data = snapshot.val();
     if (data) {
-      state.rows = state.rows.filter(r => r.id !== data.id);
+      state.rows[key] = state.rows[key].filter(r => r.id !== data.id);
       state.selected.delete(data.id);
-      render();
+      if (getCurrentKey() === key) render();
     }
   });
 }
 
-function saveToFirebase(row) {
-  if (!state.useFirebase || !dataRef) {
-    console.log('💾 로컬 저장소에 저장 중...');
-    saveLocal();
-    return;
-  }
-  
+function saveToFirebase(row, key) {
+  if (!state.useFirebase || !dataRefs[key]) return;
   if (!row.id) return;
-  console.log('🔥 Firebase에 저장 중:', row.id, row.client);
-  dataRef.child(row.id).set(row)
-    .then(() => {
-      console.log('✅ Firebase 저장 완료:', row.id);
-    })
+  
+  dataRefs[key].child(row.id).set(row)
+    .then(() => console.log('✅ Firebase 저장 완료:', row.id))
     .catch(error => {
       console.error('❌ Firebase 저장 실패:', error);
-      console.error('에러 코드:', error.code);
-      console.error('에러 메시지:', error.message);
       alert('데이터 저장에 실패했습니다: ' + error.message);
     });
 }
 
-function deleteFromFirebase(id) {
-  if (!state.useFirebase || !dataRef) {
-    saveLocal();
-    return;
-  }
+function deleteFromFirebase(id, key) {
+  if (!state.useFirebase || !dataRefs[key]) return;
   
-  dataRef.child(id).remove().catch(error => {
-    console.error('Firebase 삭제 실패:', error);
-    alert('데이터 삭제에 실패했습니다. 네트워크 연결을 확인해주세요.');
-  });
+  dataRefs[key].child(id).remove()
+    .catch(error => {
+      console.error('❌ Firebase 삭제 실패:', error);
+      alert('데이터 삭제에 실패했습니다.');
+    });
 }
 
-function loadFromFirebase() {
-  if (!dataRef) return;
+function loadFromFirebase(key) {
+  if (!dataRefs[key]) return;
   
-  dataRef.once('value', (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-      state.rows = Object.values(data).map(mk);
-      render();
-    } else {
-      seed();
-      state.rows.forEach(row => saveToFirebase(row));
+  dataRefs[key].once('value')
+    .then((snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        state.rows[key] = Object.values(data).map(d => mk(d, CONFIGS[key]));
+        console.log(`✅ ${CONFIGS[key].name} 데이터 로드:`, state.rows[key].length, '개');
+        if (getCurrentKey() === key) render();
+      }
+    })
+    .catch(error => {
+      console.error(`❌ ${CONFIGS[key].name} 로드 실패:`, error);
+    });
+}
+
+function switchType(type, subtype = null) {
+  state.currentType = type;
+  if (subtype) state.currentSubtype = subtype;
+  
+  $$('.tab').forEach(t => t.classList.remove('active'));
+  $(`.tab[data-type="${type}"]`).classList.add('active');
+  
+  if (type === 'place') {
+    $('#placeSubtabs').style.display = 'flex';
+    $$('.subtab').forEach(t => t.classList.remove('active'));
+    $(`.subtab[data-subtype="${state.currentSubtype}"]`).classList.add('active');
+  } else {
+    $('#placeSubtabs').style.display = 'none';
+  }
+  
+  state.selected.clear();
+  render();
+}
+
+function renderFilters() {
+  const config = getCurrentConfig();
+  const container = $('#filtersContainer');
+  
+  let html = '<div class="filters">';
+  html += '<input id="q" placeholder="🔎 검색" autocomplete="off">';
+  
+  config.fields.forEach(field => {
+    if (field.type === 'select' && field.key !== 'tax') {
+      html += `<select id="f${field.key}">
+        <option value="all">${field.label}: 전체</option>
+        ${field.options.map(opt => `<option>${opt}</option>`).join('')}
+      </select>`;
     }
   });
+  
+  html += `<select id="fTax">
+    <option value="all">세금계산서: 전체</option>
+    <option value="yes">발행</option>
+    <option value="no">미발행</option>
+  </select>`;
+  
+  html += `<input type="date" id="fDate">`;
+  html += `<select id="sortSel">
+    <option value="date_desc">정렬: 최신일자</option>
+    <option value="date_asc">정렬: 오래된일자</option>
+    <option value="cost_desc">정렬: 작업비 ⬇</option>
+    <option value="cost_asc">정렬: 작업비 ⬆</option>
+  </select>`;
+  
+  html += '<div class="filter-reset-all"><button class="btn small outline" id="resetFiltersBtn">🔄 필터 초기화</button></div>';
+  html += '</div>';
+  
+  container.innerHTML = html;
+  bindFilterEvents();
 }
 
-function getSearchHistory(){try{return JSON.parse(localStorage.getItem(searchHistoryKey)||'[]')}catch(e){return[]}}
-function saveSearchHistory(q){
-  if(!q||!q.trim())return;
-  let h=getSearchHistory().filter(x=>x!==q);
-  h.unshift(q); h=h.slice(0,20);
-  localStorage.setItem(searchHistoryKey,JSON.stringify(h));
-}
-function deleteSearchHistoryItem(q){
-  let h=getSearchHistory().filter(x=>x!==q);
-  localStorage.setItem(searchHistoryKey,JSON.stringify(h));
-  renderAutocomplete();
-}
-function renderAutocomplete(){
-  const dd=$('#qAutocomplete'), h=getSearchHistory();
-  if(!h.length){dd.innerHTML='<div style="padding:16px;text-align:center;color:var(--muted)">검색 기록 없음</div>'; return}
-  dd.innerHTML=h.map(q=>`<div class="autocomplete-item" data-query="${q.replace(/"/g,'&quot;')}">
-    <span class="autocomplete-text">${q}</span><button class="autocomplete-delete">✕</button></div>`).join('');
-  $$('.autocomplete-item').forEach(item=>{
-    const q=item.dataset.query;
-    item.querySelector('.autocomplete-text').onclick=e=>{
-      e.stopPropagation(); $('#q').value=q; state.filters.q=q;
-      state.pagination.currentPage=1; dd.classList.remove('active'); render();
-    };
-    item.querySelector('.autocomplete-delete').onclick=e=>{e.stopPropagation(); deleteSearchHistoryItem(q)};
+function renderTable() {
+  const config = getCurrentConfig();
+  const key = getCurrentKey();
+  const rows = state.rows[key] || [];
+  
+  $('#listTitle').textContent = `📋 ${config.name}`;
+  
+  let theadHtml = '<tr><th class="center"><input type="checkbox" id="chkAll" class="select-row"></th>';
+  config.fields.forEach(field => {
+    const align = field.type === 'number' || field.type === 'computed' ? 'num' : '';
+    theadHtml += `<th class="${align}">${field.label}</th>`;
   });
-}
-
-function applyTheme(m){
-  const html=document.documentElement;
-  if(m==='auto'){const pd=matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches; html.setAttribute('data-theme',pd?'dark':'light')}
-  else html.setAttribute('data-theme',m==='dark'?'dark':'light');
-}
-
-function applyFilters(rows){
-  let arr=rows.slice(); const f=state.filters;
-  if(f.q){const q=f.q.toLowerCase(); arr=arr.filter(r=>[r.client,r.keywords,r.mid,r.product,r.category,r.note].join(' ').toLowerCase().includes(q))}
-  if(f.product!=='all')arr=arr.filter(r=>r.product===f.product);
-  if(f.category!=='all')arr=arr.filter(r=>r.category===f.category);
-  if(f.tax!=='all')arr=arr.filter(r=>(f.tax==='yes'?r.tax==='발행':r.tax==='미발행'));
-  if(f.date){
-    if(f.periodType==='day')arr=arr.filter(r=>r.startDate===f.date);
-    else if(f.periodType==='week'){const tw=getWeekNumber(f.date); arr=arr.filter(r=>{if(!r.startDate)return false; const rw=getWeekNumber(r.startDate); return rw.year===tw.year&&rw.week===tw.week})}
-    else if(f.periodType==='month'){const tm=getYearMonth(f.date); arr=arr.filter(r=>r.startDate&&getYearMonth(r.startDate)===tm)}
-  }
-  const[sf,dir]=f.sort.split('_'), mul=dir==='asc'?1:-1;
-  arr.sort((a,b)=>{
-    if(sf==='date')return(a.startDate||'').localeCompare(b.startDate||'')*mul;
-    if(sf==='cost')return((a.cost||0)-(b.cost||0))*mul;
-    if(sf==='client')return(a.client||'').localeCompare(b.client||'','ko')*mul;
-    return 0;
-  });
-  return arr;
-}
-
-function render(){renderTable(); renderKpis(); updateBulkEditBar(); saveLocal();}
-
-function renderTable(){
-  const tbody=$('#tbody'); tbody.innerHTML='';
-  const allRows=applyFilters(state.rows);
-  const{perPage}=state.pagination;
-  let totalPages=Math.ceil(allRows.length/perPage);
-  if(totalPages<1) totalPages=1;
-  if(state.pagination.currentPage>totalPages) state.pagination.currentPage=totalPages;
-  if(state.pagination.currentPage<1) state.pagination.currentPage=1;
-  const {currentPage}=state.pagination;
-
-  const startIdx=(currentPage-1)*perPage;
-  const rows=allRows.slice(startIdx,startIdx+perPage);
-  $('#countInfo').textContent=`${allRows.length}건 (${currentPage}/${totalPages} 페이지)`;
-
-  const todayDate=new Date(); todayDate.setHours(0,0,0,0);
-  const tomorrow=new Date(todayDate); tomorrow.setDate(tomorrow.getDate()+1);
-
-  rows.forEach(r=>{
-    const tr=document.createElement('tr');
-    if(r.endDate){const ed=new Date(r.endDate); ed.setHours(0,0,0,0); if(ed.getTime()===tomorrow.getTime())tr.classList.add('deadline-warning')}
-
-    const tdSel=document.createElement('td'); tdSel.className='center';
-    const cb=document.createElement('input'); cb.type='checkbox'; cb.className='select-row';
-    cb.checked=state.selected.has(r.id);
-    cb.onchange=()=>{if(cb.checked)state.selected.add(r.id); else state.selected.delete(r.id); updateBulkEditBar()};
-    tdSel.appendChild(cb); tr.appendChild(tdSel);
-
-    addCell(tr,r,'product'); addCell(tr,r,'category'); addCell(tr,r,'client',null,'nowrap');
-    const tdMid=document.createElement('td'); tdMid.className='url nowrap';
-    if(r.mid){const a=document.createElement('a'); a.href=r.mid; a.target='_blank'; a.rel='noopener noreferrer'; a.textContent='열기'; tdMid.appendChild(a)}
-    tdMid.onclick=()=>startEdit(tdMid,r,'mid'); tr.appendChild(tdMid);
-    addCell(tr,r,'keywords',null,'nowrap'); addCell(tr,r,'startDate'); addCell(tr,r,'endDate');
-    addCell(tr,r,'units',null,'num'); addCell(tr,r,'days',null,'num'); addCell(tr,r,'unitPrice',null,'num');
-    const tdQty=document.createElement('td'); tdQty.className='num'; tdQty.textContent=r.totalQty||''; tr.appendChild(tdQty);
-    const tdCost=document.createElement('td'); tdCost.className='num'; tdCost.textContent=fmtMoney(r.cost||0); tr.appendChild(tdCost);
-    const tdTax=document.createElement('td'); tdTax.className='center '+(r.tax==='발행'?'badge-yes':'badge-no');
-    tdTax.textContent=r.tax||''; tdTax.onclick=()=>startEdit(tdTax,r,'tax'); tr.appendChild(tdTax);
-    addCell(tr,r,'note',null,'nowrap');
-
-    const tdAct=document.createElement('td'); tdAct.className='center';
-    const dup=document.createElement('button'); dup.className='btn small outline'; dup.textContent='복제';
-    dup.onclick=()=>{
-      const c=JSON.parse(JSON.stringify(r)); 
-      c.id='r_'+Math.random().toString(36).slice(2,9); 
-      c.createdAt=new Date().toISOString(); 
-      state.rows.unshift(c); 
-      saveToFirebase(c);
-      render();
+  theadHtml += '<th class="center">⚙️</th></tr>';
+  $('#thead').innerHTML = theadHtml;
+  
+  const tbody = $('#tbody');
+  tbody.innerHTML = '';
+  
+  const {perPage, currentPage} = state.pagination;
+  const startIdx = (currentPage - 1) * perPage;
+  const pageRows = rows.slice(startIdx, startIdx + perPage);
+  
+  pageRows.forEach(row => {
+    const tr = document.createElement('tr');
+    
+    const tdSel = document.createElement('td');
+    tdSel.className = 'center';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'select-row';
+    cb.checked = state.selected.has(row.id);
+    cb.onchange = () => {
+      if (cb.checked) state.selected.add(row.id);
+      else state.selected.delete(row.id);
+      updateBulkEditBar();
     };
-    const del=document.createElement('button'); del.className='btn small danger'; del.textContent='삭제';
-    del.onclick=()=>{
-      if(confirm('삭제할까요?')){
-        state.rows=state.rows.filter(x=>x.id!==r.id); 
-        state.selected.delete(r.id); 
-        deleteFromFirebase(r.id);
+    tdSel.appendChild(cb);
+    tr.appendChild(tdSel);
+    
+    config.fields.forEach(field => {
+      const td = document.createElement('td');
+      
+      if (field.type === 'computed') {
+        if (field.key === 'totalQty') {
+          td.textContent = row.totalQty || '';
+          td.className = 'num';
+        } else if (field.key === 'cost') {
+          td.textContent = fmtMoney(row.cost || 0);
+          td.className = 'num';
+        }
+      } else if (field.type === 'url') {
+        td.className = 'url nowrap';
+        if (row[field.key]) {
+          const a = document.createElement('a');
+          a.href = row[field.key];
+          a.target = '_blank';
+          a.textContent = '열기';
+          td.appendChild(a);
+        }
+        td.onclick = () => startEdit(td, row, field, key);
+      } else if (field.type === 'number') {
+        td.textContent = row[field.key] ?? '';
+        td.className = 'num';
+        td.onclick = () => startEdit(td, row, field, key);
+      } else if (field.key === 'tax') {
+        td.textContent = row[field.key] || '';
+        td.className = 'center ' + (row[field.key] === '발행' ? 'badge-yes' : 'badge-no');
+        td.onclick = () => startEdit(td, row, field, key);
+      } else {
+        td.textContent = row[field.key] ?? '';
+        td.className = 'nowrap';
+        td.onclick = () => startEdit(td, row, field, key);
+      }
+      
+      tr.appendChild(td);
+    });
+    
+    const tdAct = document.createElement('td');
+    tdAct.className = 'center';
+    
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn small danger';
+    delBtn.textContent = '삭제';
+    delBtn.onclick = () => {
+      if (confirm('삭제할까요?')) {
+        state.rows[key] = state.rows[key].filter(r => r.id !== row.id);
+        state.selected.delete(row.id);
+        deleteFromFirebase(row.id, key);
         render();
       }
     };
-    tdAct.append(dup,' ',del); tr.appendChild(tdAct);
+    
+    tdAct.appendChild(delBtn);
+    tr.appendChild(tdAct);
     tbody.appendChild(tr);
   });
-
-  const allFiltered=applyFilters(state.rows);
-  $('#chkAll').checked=allFiltered.length>0&&allFiltered.every(r=>state.selected.has(r.id));
-  renderPagination(totalPages);
+  
+  $('#countInfo').textContent = `${rows.length}건`;
+  updateBulkEditBar();
+  
+  $('#chkAll').onchange = e => {
+    if (e.target.checked) rows.forEach(r => state.selected.add(r.id));
+    else rows.forEach(r => state.selected.delete(r.id));
+    renderTable();
+  };
 }
 
-function addCell(tr,row,field,customRenderer,extraClass,readOnly){
-  const val=row[field];
-  if(customRenderer){const td=customRenderer(val); if(!readOnly)td.onclick=()=>startEdit(td,row,field); tr.appendChild(td); return}
-  const td=document.createElement('td'); if(extraClass)td.className=extraClass;
-  td.textContent=val??''; if(!readOnly)td.onclick=()=>startEdit(td,row,field); tr.appendChild(td);
-}
-
-function startEdit(td,row,field){
-  const cols={product:{type:'select',options:['멘토스','말차','호올스','신규']},category:{type:'select',options:['트래픽','저장','길찾기','영수증']},
-    client:{type:'text'},mid:{type:'url'},keywords:{type:'text'},startDate:{type:'date'},endDate:{type:'date'},
-    units:{type:'number'},days:{type:'number'},unitPrice:{type:'number'},tax:{type:'select',options:['발행','미발행']},note:{type:'text'}};
-  const col=cols[field]; if(!col)return;
-  const old=row[field]??'';
+function startEdit(td, row, field, key) {
+  const old = row[field.key] ?? '';
   let el;
-  if(col.type==='select'){
-    el=document.createElement('select'); el.className='cell-editor';
-    if(field==='tax')el.innerHTML='<option>발행</option><option>미발행</option>';
-    else el.innerHTML=col.options.map(v=>`<option>${v}</option>`).join('');
-    el.value=old;
-  }else{
-    el=document.createElement('input'); el.className='cell-editor';
-    el.type=col.type==='text'?'text':col.type; el.value=old;
-    if(col.type==='number')el.step='any';
+  
+  if (field.type === 'select') {
+    el = document.createElement('select');
+    el.className = 'cell-editor';
+    el.innerHTML = field.options.map(v => `<option>${v}</option>`).join('');
+    el.value = old;
+  } else {
+    el = document.createElement('input');
+    el.className = 'cell-editor';
+    el.type = field.type === 'number' ? 'number' : field.type === 'url' ? 'url' : 'text';
+    el.value = old;
+    if (field.type === 'number') el.step = 'any';
   }
-  td.innerHTML=''; td.appendChild(el); el.focus(); if(el.select)el.select();
-  const commit=()=>{
-    let v=el.value;
-    if(col.type==='number')v=parseNum(v);
-    row[field]=v||'';
-    row.totalQty=(row.units||0)*(row.days||0);
-    row.cost=row.totalQty*(row.unitPrice||0);
-    saveToFirebase(row);
+  
+  td.innerHTML = '';
+  td.appendChild(el);
+  el.focus();
+  if (el.select) el.select();
+  
+  const commit = () => {
+    let v = el.value;
+    if (field.type === 'number') v = parseNum(v);
+    row[field.key] = v || '';
+    
+    const config = getCurrentConfig();
+    if (config.fields.find(f => f.key === 'totalQty' && f.type === 'computed')) {
+      if (row.units !== undefined && row.days !== undefined) {
+        row.totalQty = (row.units||0) * (row.days||0);
+      } else if (row.quantity !== undefined && row.days !== undefined) {
+        row.totalQty = (row.quantity||0) * (row.days||0);
+      }
+    }
+    if (config.fields.find(f => f.key === 'cost' && f.type === 'computed')) {
+      row.cost = (row.totalQty||0) * (row.unitPrice||0);
+    }
+    
+    saveToFirebase(row, key);
     render();
   };
-  el.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commit()}else if(e.key==='Escape'){e.preventDefault();render()}};
-  el.onblur=commit;
-}
-
-function renderPagination(totalPages){
-  const c=$('#pagination'); c.innerHTML=''; if(totalPages<=1)return;
-  const{currentPage}=state.pagination;
-  const prev=document.createElement('button'); prev.className='page-btn'; prev.textContent='‹';
-  prev.disabled=currentPage===1; prev.onclick=()=>{state.pagination.currentPage--;render()}; c.appendChild(prev);
-
-  let start=Math.max(1,currentPage-3), end=Math.min(totalPages,start+6);
-  if(end-start<6)start=Math.max(1,end-6);
-  if(start>1){const f=document.createElement('button'); f.className='page-btn'; f.textContent='1'; f.onclick=()=>{state.pagination.currentPage=1;render()}; c.appendChild(f);
-    if(start>2){const e=document.createElement('span'); e.textContent='...'; e.style.padding='0 8px'; e.style.color='var(--muted)'; c.appendChild(e)}}
-  for(let i=start;i<=end;i++){const b=document.createElement('button'); b.className='page-btn'+(i===currentPage?' active':'');
-    b.textContent=i; b.onclick=()=>{state.pagination.currentPage=i;render()}; c.appendChild(b)}
-  if(end<totalPages){if(end<totalPages-1){const e=document.createElement('span'); e.textContent='...'; e.style.padding='0 8px'; e.style.color='var(--muted)'; c.appendChild(e)}
-    const l=document.createElement('button'); l.className='page-btn'; l.textContent=totalPages; l.onclick=()=>{state.pagination.currentPage=totalPages;render()}; c.appendChild(l)}
-
-  const next=document.createElement('button'); next.className='page-btn'; next.textContent='›';
-  next.disabled=currentPage===totalPages; next.onclick=()=>{state.pagination.currentPage++;render()}; c.appendChild(next);
-}
-
-function updateBulkEditBar(){
-  $('#bulkEditBar').classList.toggle('active',state.selected.size>0);
-  $('#selectedCount').textContent=`${state.selected.size}개 선택`;
-}
-
-function openBulkEditModal(){
-  if(!state.selected.size)return alert('항목을 선택하세요');
-  $('#bulkCountText').textContent=state.selected.size;
-  const sel=state.rows.filter(r=>state.selected.has(r.id));
-  const getVal=f=>{const v=sel.map(r=>r[f]); return v.every(x=>x===v[0])?v[0]:''};
-  $('#bProduct').value=getVal('product')||''; $('#bCategory').value=getVal('category')||'';
-  $('#bClient').value=getVal('client')||''; $('#bMid').value=getVal('mid')||'';
-  $('#bKeywords').value=getVal('keywords')||''; $('#bStartDate').value=getVal('startDate')||'';
-  $('#bEndDate').value=getVal('endDate')||''; $('#bUnits').value=getVal('units')??'';
-  $('#bDays').value=getVal('days')??''; $('#bUnitPrice').value=getVal('unitPrice')??'';
-  $('#bTax').value=getVal('tax')||''; $('#bNote').value=getVal('note')||'';
-  $('#bulkEditModalBack').classList.add('active');
-}
-
-function closeBulkEditModal(){$('#bulkEditModalBack').classList.remove('active'); resetBulkForm()}
-function resetBulkForm(){$('#bulkEditForm').reset(); $('#bProduct').value=''; $('#bCategory').value=''; $('#bTax').value=''}
-
-function applyBulkEdit(e){
-  e.preventDefault();
-  const u={};
-  if($('#bProduct').value)u.product=$('#bProduct').value;
-  if($('#bCategory').value)u.category=$('#bCategory').value;
-  if($('#bClient').value.trim())u.client=$('#bClient').value.trim();
-  if($('#bMid').value.trim())u.mid=$('#bMid').value.trim();
-  if($('#bKeywords').value.trim())u.keywords=$('#bKeywords').value.trim();
-  if($('#bStartDate').value)u.startDate=$('#bStartDate').value;
-  if($('#bEndDate').value)u.endDate=$('#bEndDate').value;
-  if($('#bUnits').value)u.units=parseNum($('#bUnits').value);
-  if($('#bDays').value)u.days=parseNum($('#bDays').value);
-  if($('#bUnitPrice').value)u.unitPrice=parseNum($('#bUnitPrice').value);
-  if($('#bTax').value)u.tax=$('#bTax').value;
-  if($('#bNote').value.trim())u.note=$('#bNote').value.trim();
-  if(!Object.keys(u).length)return alert('변경할 내용을 입력하세요');
-  state.rows.forEach(r=>{
-    if(state.selected.has(r.id)){
-      Object.assign(r,u); 
-      r.totalQty=(r.units||0)*(r.days||0); 
-      r.cost=r.totalQty*(r.unitPrice||0);
-      saveToFirebase(r);
+  
+  el.onkeydown = e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      commit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      render();
     }
+  };
+  el.onblur = commit;
+}
+
+function updateBulkEditBar() {
+  $('#bulkEditBar').classList.toggle('active', state.selected.size > 0);
+  $('#selectedCount').textContent = `${state.selected.size}개 선택`;
+}
+
+function openAddModal() {
+  const config = getCurrentConfig();
+  const form = $('#addForm');
+  
+  let html = '';
+  config.fields.forEach(field => {
+    if (field.type === 'computed') return;
+    
+    const divClass = field.key === 'client' || field.key === 'mid' || field.key === 'keywords' || field.key === 'note' || field.key === 'url' ? 'full' : '';
+    html += `<div class="${divClass}"><label>${field.label}</label>`;
+    
+    if (field.type === 'select') {
+      html += `<select id="a${field.key}" required>`;
+      html += '<option value="">선택</option>';
+      field.options.forEach(opt => {
+        html += `<option>${opt}</option>`;
+      });
+      html += '</select>';
+    } else if (field.type === 'daterange') {
+      html += `<input id="a${field.key}Start" type="date" placeholder="시작일">`;
+      html += `<input id="a${field.key}End" type="date" placeholder="종료일" style="margin-top:8px">`;
+    } else {
+      const inputType = field.type === 'number' ? 'number' : field.type === 'url' ? 'url' : field.type === 'date' ? 'date' : 'text';
+      const req = field.key === 'client' ? 'required' : '';
+      html += `<input id="a${field.key}" type="${inputType}" ${req}>`;
+    }
+    
+    html += '</div>';
   });
-  render(); closeBulkEditModal(); alert(`${state.selected.size}개 수정 완료`);
-}
-
-function renderKpis(){
-  const rows=applyFilters(state.rows);
-  const cnt=rows.length, qty=rows.reduce((s,r)=>s+(r.totalQty||0),0), cost=rows.reduce((s,r)=>s+(r.cost||0),0);
-  $('#kpiCount').textContent=cnt.toLocaleString('ko-KR');
-  $('#kpiQty').textContent=qty.toLocaleString('ko-KR');
-  $('#kpiCost').textContent=fmtMoney(cost);
-  $('#kpiAvg').textContent=fmtMoney(qty>0?cost/qty:0);
-
-  const byProduct={};
-  state.rows.forEach(r=>{const p=r.product||'미분류'; byProduct[p]=(byProduct[p]||0)+(r.cost||0)});
-  const pData=Object.entries(byProduct).map(([p,c])=>({label:p,value:c})).sort((a,b)=>b.value-a.value);
-  drawBars($('#barsByProduct'),pData,true);
-
-  const byMonth={};
-  state.rows.forEach(r=>{if(!r.startDate)return; const ym=getYearMonth(r.startDate); byMonth[ym]=(byMonth[ym]||0)+(r.cost||0)});
-  const mData=Object.entries(byMonth).sort((a,b)=>b[0].localeCompare(a[0]));
-  const mc=$('#monthlyCost');
-  if(!mData.length){mc.innerHTML='<div class="muted">월별 데이터 없음</div>'; return}
-  mc.innerHTML=mData.map(([ym,c])=>{const[y,m]=ym.split('-'); return`<div class="month-item" data-month="${ym}">
-    <span>${y}년 ${m}월: <strong>${fmtMoney(c)}</strong></span><span class="month-item-icon">📊</span></div>`}).join('');
-  $$('.month-item').forEach(i=>i.onclick=()=>showMonthlyChart(i.dataset.month));
-}
-
-function drawBars(c,data,money){
-  c.innerHTML=''; const max=Math.max(1,...data.map(d=>d.value));
-  data.forEach(d=>{
-    const col=document.createElement('div'); col.className='col';
-    if(d.label&&d.label!=='미분류')col.classList.add(`product-${d.label}`);
-    const bar=document.createElement('div'); bar.className='bar'; bar.style.height=Math.round(d.value/max*100)+'%';
-    const val=document.createElement('div'); val.className='bar-value'; val.textContent=money?fmtMoney(d.value):d.value.toLocaleString('ko-KR');
-    const lab=document.createElement('div'); lab.className='note'; lab.textContent=d.label||'미분류';
-    col.append(bar,val,lab); c.appendChild(col);
-  });
-}
-
-function showMonthlyChart(ym){
-  const[y,m]=ym.split('-'); const pc={};
-  state.rows.forEach(r=>{if(!r.startDate||getYearMonth(r.startDate)!==ym)return; const p=r.product||'미분류'; pc[p]=(pc[p]||0)+(r.cost||0)});
-  const data=Object.entries(pc).map(([p,c])=>({product:p,cost:c,percentage:0}));
-  const total=data.reduce((s,i)=>s+i.cost,0);
-  data.forEach(i=>i.percentage=total>0?i.cost/total*100:0);
-  data.sort((a,b)=>b.cost-a.cost);
-  $('#chartTitle').textContent=`${y}년 ${m}월 상품별 작업비`;
-  drawPieChart(data); renderPieLegend(data);
-  $('#chartModal').classList.add('active');
-}
-
-function drawPieChart(data){
-  const cv=$('#pieChart'), ctx=cv.getContext('2d'), cx=cv.width/2, cy=cv.height/2, r=120;
-  ctx.clearRect(0,0,cv.width,cv.height);
-  if(!data.length){ctx.fillStyle='#8b94a8'; ctx.font='16px sans-serif'; ctx.textAlign='center'; ctx.fillText('데이터 없음',cx,cy); return}
-  const colors={멘토스:'#8B5CF6',호올스:'#A78BFA',말차:'#10B981',신규:'#6366f1',미분류:'#64748b'};
-  const theme=document.documentElement.getAttribute('data-theme');
-  const bc=theme==='light'?'#e2e8f0':'#2a3551';
-  let ca=-Math.PI/2;
-  data.forEach(i=>{
-    const sa=i.percentage/100*2*Math.PI, ea=ca+sa;
-    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,ca,ea); ctx.closePath();
-    ctx.fillStyle=colors[i.product]||'#64748b'; ctx.fill();
-    ctx.strokeStyle=bc; ctx.lineWidth=2; ctx.stroke();
-    if(i.percentage>=5){const ta=ca+sa/2, tx=cx+Math.cos(ta)*(r*0.7), ty=cy+Math.sin(ta)*(r*0.7);
-      ctx.fillStyle='#fff'; ctx.font='bold 14px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(`${i.percentage.toFixed(1)}%`,tx,ty)}
-    ca=ea;
-  });
-}
-
-function renderPieLegend(data){
-  const colors={멘토스:'#8B5CF6',호올스:'#A78BFA',말차:'#10B981',신규:'#6366f1',미분류:'#64748b'};
-  $('#pieLegend').innerHTML=data.map(i=>`<div class="pie-legend-item">
-    <div class="pie-legend-color" style="background:${colors[i.product]||'#64748b'}"></div>
-    <div class="pie-legend-info">
-      <div class="pie-legend-label">${i.product}</div>
-      <div class="pie-legend-value">${fmtMoney(i.cost)} (${i.percentage.toFixed(1)}%)</div>
-    </div></div>`).join('');
-}
-
-function openAddModal(){$('#addModalBack').classList.add('active'); $('#aStartDate').value=today()}
-function closeAddModal(){$('#addModalBack').classList.remove('active')}
-function resetAddForm(){$('#addForm').reset(); $('#aProduct').value=''; $('#aCategory').value=''; $('#aTax').value='미발행'; $('#aStartDate').value=today()}
-
-function exportExcel(){
-  if(!state.selected.size)return alert('항목을 선택하세요');
-  const sel=state.rows.filter(r=>state.selected.has(r.id));
-  const data=sel.map(r=>({ID:r.id,상품:r.product||'',구분:r.category||'',업체명:r.client||'',MID:r.mid||'',
-    키워드:r.keywords||'',시작일:r.startDate||'',종료일:r.endDate||'',일타:r.units??'',일수:r.days??'',
-    단가:r.unitPrice??'',총량:r.totalQty??'',작업비:r.cost??'',세금계산서:r.tax||'',비고:r.note||'',생성일시:r.createdAt||''}));
-  const ws=XLSX.utils.json_to_sheet(data), wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'작업목록');
-  XLSX.writeFile(wb,`엔티제컴퍼니_작업목록_${today()}.xlsx`);
-  alert(`${sel.length}개 항목 내보내기 완료`);
-}
-
-function bind(){
-  const qIn=$('#q'), qDd=$('#qAutocomplete');
-  qIn.onfocus=()=>{renderAutocomplete(); qDd.classList.add('active')};
-  qIn.oninput=e=>{state.filters.q=e.target.value; state.pagination.currentPage=1; render()};
-  qIn.onkeydown=e=>{if(e.key==='Enter'&&qIn.value.trim()){saveSearchHistory(qIn.value.trim()); qDd.classList.remove('active')}};
-  document.addEventListener('click',e=>{if(!$('#qWrapper').contains(e.target))qDd.classList.remove('active')},{passive:true});
-
-  $('#fProduct').onchange=e=>{state.filters.product=e.target.value; state.pagination.currentPage=1; render()};
-  $('#fCategory').onchange=e=>{state.filters.category=e.target.value; state.pagination.currentPage=1; render()};
-  $('#fTax').onchange=e=>{state.filters.tax=e.target.value; state.pagination.currentPage=1; render()};
-  $('#fDate').onchange=e=>{state.filters.date=e.target.value; state.pagination.currentPage=1; render()};
-  $('#sortSel').onchange=e=>{state.filters.sort=e.target.value; state.pagination.currentPage=1; render()};
-  $('#perPageSelect').onchange=e=>{state.pagination.perPage=parseInt(e.target.value,10); state.pagination.currentPage=1; render()};
-
-  $$('.period-btn').forEach(b=>b.onclick=()=>{$$('.period-btn').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active'); state.filters.periodType=b.dataset.period; state.pagination.currentPage=1; render()});
-
-  $('#resetFiltersBtn').onclick=()=>{$('#q').value=''; $('#fDate').value=''; $('#fProduct').value='all';
-    $('#fCategory').value='all'; $('#fTax').value='all'; $('#sortSel').value='date_desc';
-    state.filters={q:'',product:'all',category:'all',tax:'all',date:'',periodType:'day',sort:'date_desc'};
-    state.pagination.currentPage=1; $$('.period-btn').forEach(b=>b.classList.remove('active'));
-    $('.period-btn[data-period="day"]').classList.add('active'); qDd.classList.remove('active'); render()};
-
-  $('#chkAll').onchange=e=>{const all=applyFilters(state.rows);
-    if(e.target.checked)all.forEach(r=>state.selected.add(r.id)); else all.forEach(r=>state.selected.delete(r.id));
-    renderTable(); updateBulkEditBar()};
-
-  $('#bulkEditBtn').onclick=openBulkEditModal;
-  $('#bulkEditForm').onsubmit=applyBulkEdit;
-  $('#openAddModalBtn').onclick=openAddModal;
-  $('#addForm').onsubmit=e=>{
-    e.preventDefault(); 
-    const n=mk({product:$('#aProduct').value,category:$('#aCategory').value,
-      client:$('#aClient').value.trim(),mid:$('#aMid').value.trim(),keywords:$('#aKeywords').value.trim(),
-      startDate:$('#aStartDate').value||today(),endDate:$('#aEndDate').value||'',units:parseNum($('#aUnits').value),
-      days:parseNum($('#aDays').value),unitPrice:parseNum($('#aUnitPrice').value),tax:$('#aTax').value||'미발행',
-      note:$('#aNote').value.trim()}); 
-    state.rows.unshift(n); 
-    saveToFirebase(n);
-    render(); 
+  
+  html += `<div class="full" style="display:flex; gap:12px; justify-content:flex-end; margin-top:8px">
+    <button type="button" class="btn outline" onclick="resetAddForm()">🔄 초기화</button>
+    <button type="submit" class="btn">✓ 등록</button>
+  </div>`;
+  
+  form.innerHTML = html;
+  $('#addModalBack').classList.add('active');
+  
+  form.onsubmit = e => {
+    e.preventDefault();
+    const key = getCurrentKey();
+    const config = getCurrentConfig();
+    const data = {};
+    
+    config.fields.forEach(field => {
+      if (field.type === 'computed') return;
+      
+      if (field.type === 'daterange') {
+        data.startDate = $(`#a${field.key}Start`).value;
+        data.endDate = $(`#a${field.key}End`).value;
+      } else {
+        const el = $(`#a${field.key}`);
+        if (el) {
+          data[field.key] = field.type === 'number' ? parseNum(el.value) : el.value;
+        }
+      }
+    });
+    
+    const newRow = mk(data, config);
+    state.rows[key].unshift(newRow);
+    saveToFirebase(newRow, key);
+    render();
     closeAddModal();
   };
-  $('#removeSelectedBtn').onclick=()=>{
-    if(!state.selected.size)return alert('항목을 선택하세요');
-    if(confirm(`${state.selected.size}건 삭제?`)){
-      state.rows=state.rows.filter(r=>{
-        if(state.selected.has(r.id)){
-          deleteFromFirebase(r.id);
+}
+
+function closeAddModal() {
+  $('#addModalBack').classList.remove('active');
+}
+
+function resetAddForm() {
+  $('#addForm').reset();
+}
+
+function exportExcel() {
+  if (!state.selected.size) return alert('항목을 선택하세요');
+  
+  const key = getCurrentKey();
+  const config = getCurrentConfig();
+  const selected = state.rows[key].filter(r => state.selected.has(r.id));
+  
+  const data = selected.map(row => {
+    const obj = {ID: row.id};
+    config.fields.forEach(field => {
+      obj[field.label] = row[field.key] ?? '';
+    });
+    obj['생성일시'] = row.createdAt || '';
+    return obj;
+  });
+  
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, config.name);
+  XLSX.writeFile(wb, `${config.name}_${today()}.xlsx`);
+  alert(`${selected.length}개 항목 내보내기 완료`);
+}
+
+function bindFilterEvents() {
+  $('#q').oninput = e => render();
+  $('#fDate').onchange = e => render();
+  $('#sortSel').onchange = e => render();
+  
+  $$('select[id^="f"]').forEach(sel => {
+    if (sel.id !== 'fDate' && sel.id !== 'fTax') {
+      sel.onchange = () => render();
+    }
+  });
+  
+  $('#fTax').onchange = () => render();
+  
+  $('#resetFiltersBtn').onclick = () => {
+    $('#q').value = '';
+    $('#fDate').value = '';
+    $$('select[id^="f"]').forEach(s => s.value = 'all');
+    $('#sortSel').value = 'date_desc';
+    render();
+  };
+}
+
+function render() {
+  renderFilters();
+  renderTable();
+}
+
+function bindEvents() {
+  $$('.tab').forEach(tab => {
+    tab.onclick = () => {
+      const type = tab.dataset.type;
+      switchType(type, type === 'place' ? 'reward' : null);
+    };
+  });
+  
+  $$('.subtab').forEach(subtab => {
+    subtab.onclick = () => {
+      const subtype = subtab.dataset.subtype;
+      switchType('place', subtype);
+    };
+  });
+  
+  $('#openAddModalBtn').onclick = openAddModal;
+  $('#removeSelectedBtn').onclick = () => {
+    if (!state.selected.size) return alert('항목을 선택하세요');
+    if (confirm(`${state.selected.size}건 삭제?`)) {
+      const key = getCurrentKey();
+      state.rows[key] = state.rows[key].filter(r => {
+        if (state.selected.has(r.id)) {
+          deleteFromFirebase(r.id, key);
           return false;
         }
         return true;
       });
-      state.selected.clear(); 
+      state.selected.clear();
       render();
     }
   };
-  $('#themeBtn').onclick=()=>{const cur=document.documentElement.getAttribute('data-theme');
-    const next=cur==='dark'?'light':'dark'; applyTheme(next); state.prefs.theme=next; saveLocal();};
-  $('#exportExcelBtn').onclick=exportExcel;
-  $('#closeChartModal').onclick=()=>$('#chartModal').classList.remove('active');
-  $('#chartModal').onclick=e=>{if(e.target===$('#chartModal'))$('#chartModal').classList.remove('active')};
-  document.onkeydown=e=>{if(e.key==='Escape'){closeAddModal(); closeBulkEditModal(); $('#chartModal').classList.remove('active')}};
+  
+  $('#themeBtn').onclick = () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    state.prefs.theme = next;
+  };
+  
+  $('#exportExcelBtn').onclick = exportExcel;
+  $('#perPageSelect').onchange = e => {
+    state.pagination.perPage = parseInt(e.target.value, 10);
+    state.pagination.currentPage = 1;
+    render();
+  };
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  try{
-    const raw=localStorage.getItem(storageKey);
-    if(raw){const obj=JSON.parse(raw); state.prefs={...state.prefs,...(obj.prefs||{})};}
-  }catch(e){}
+  const pd = matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', pd ? 'dark' : 'light');
   
-  applyTheme(state.prefs.theme||'auto');
-  
-  const firebaseInitialized = initFirebase();
-  
-  bind();
-  
-  if (!firebaseInitialized) {
-    console.log('Firebase 초기화 실패, 로컬 모드로 실행');
-  }
+  initFirebase();
+  bindEvents();
+  render();
 });
 </script>
 </body>
