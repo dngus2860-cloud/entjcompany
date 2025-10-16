@@ -91,7 +91,8 @@
     cursor:pointer; font-weight:600; font-size:14px; transition:all .3s; color:var(--muted)}
   .tab:hover{border-color:var(--primary-light); background:var(--card2)}
   .tab.active{background:var(--primary); color:#fff; border-color:var(--primary)}
-  .subtabs{display:flex; gap:6px; margin-left:12px}
+  .subtabs{display:none; gap:6px; margin-left:12px}
+  .subtabs.show{display:flex}
   .subtab{padding:8px 16px; background:var(--card2); border:2px solid var(--border); border-radius:10px;
     cursor:pointer; font-size:13px; font-weight:600; transition:all .3s; color:var(--muted)}
   .subtab:hover{border-color:var(--primary-light)}
@@ -103,7 +104,7 @@
   .panel .h strong{font-size:18px; font-weight:700}
   .panel .b{padding:24px 28px}
 
-  .filters{display:grid; grid-template-columns:1.4fr repeat(3,1fr) .9fr 1fr; gap:12px}
+  .filters{display:grid; grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr; gap:12px; align-items:center}
   @media (max-width:1100px){.filters{grid-template-columns:1fr 1fr}}
 
   .filter-input-wrapper{position:relative}
@@ -111,14 +112,12 @@
     background:var(--card); color:var(--text); font-size:14px; font-weight:500; transition:all .3s}
   input:focus, select:focus{outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(99,102,241,.1)}
 
-  .date-filter-wrap{display:flex; flex-direction:column; gap:6px}
   .period-btns{display:flex; gap:6px}
-  .period-btn{flex:1; padding:6px 10px; font-size:12px; font-weight:600; border-radius:8px;
+  .period-btn{padding:8px 16px; font-size:13px; font-weight:600; border-radius:10px;
     border:2px solid var(--border); background:var(--card); color:var(--muted); cursor:pointer; transition:all .3s}
   .period-btn.active{background:var(--primary); color:#fff; border-color:var(--primary)}
   .period-btn:hover:not(.active){background:var(--card2); border-color:var(--primary-light)}
 
-  .filter-reset-all{grid-column:1/-1; display:flex; justify-content:flex-end; margin-top:-4px}
   .toolbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
   .sep{height:1px; background:var(--border); margin:20px 0}
   .muted{color:var(--muted); font-size:13px}
@@ -137,8 +136,14 @@
   .url a:hover{color:var(--primary); text-decoration:underline}
   .select-row{width:18px; height:18px; cursor:pointer}
 
-  tr.deadline-warning{border-left:4px solid var(--red); background:rgba(239,68,68,.15); animation:blinkWarning 2s ease-in-out infinite}
-  @keyframes blinkWarning{0%,100%{background:rgba(239,68,68,.15)} 50%{background:rgba(239,68,68,.25)}}
+  tr.deadline-d0{border-left:4px solid var(--red); background:rgba(239,68,68,.15); animation:blinkRed 2s ease-in-out infinite}
+  @keyframes blinkRed{0%,100%{background:rgba(239,68,68,.15)} 50%{background:rgba(239,68,68,.35)}}
+  
+  tr.deadline-d1{border-left:4px solid var(--amber); background:rgba(245,158,11,.15); animation:blinkYellow 2s ease-in-out infinite}
+  @keyframes blinkYellow{0%,100%{background:rgba(245,158,11,.15)} 50%{background:rgba(245,158,11,.35)}}
+  
+  tr.deadline-d23{border-left:4px solid var(--green); background:rgba(34,197,94,.15); animation:blinkGreen 2s ease-in-out infinite}
+  @keyframes blinkGreen{0%,100%{background:rgba(34,197,94,.15)} 50%{background:rgba(34,197,94,.35)}}
 
   .cell-editor{width:100%; border-radius:8px; padding:8px 12px; border:2px solid var(--primary); background:var(--card); color:var(--text); font-size:14px}
   .badge-yes{color:var(--green); font-weight:700}
@@ -235,34 +240,35 @@
     <div class="tab active" data-type="place">
       📍 플레이스 작업
     </div>
-    <div class="subtabs" id="placeSubtabs">
+    <div class="subtabs show" id="placeSubtabs">
       <div class="subtab active" data-subtype="reward">리워드</div>
       <div class="subtab" data-subtype="distribute">배포</div>
     </div>
     <div class="tab" data-type="blog">
       📝 블로그 작업
     </div>
+    <div class="tab" data-type="finance">
+      💰 매출/매입
+    </div>
   </div>
 
   <section class="panel">
     <div class="h">
-      <strong>🔍 필터 & 등록</strong>
-      <div class="toolbar">
-        <button class="btn small" id="openAddModalBtn">➕ 새 항목</button>
-        <button class="btn danger small" id="removeSelectedBtn">🗑️ 선택 삭제</button>
-      </div>
+      <strong>🔍 필터</strong>
     </div>
     <div class="b">
       <div id="filtersContainer"></div>
-      <div class="sep"></div>
-      <div class="muted" id="modeInfo">💡 표 셀 클릭 시 바로 수정 (Enter=저장, Esc=취소)</div>
     </div>
   </section>
 
   <section class="panel">
     <div class="h">
       <strong id="listTitle">📋 작업 목록</strong>
-      <span class="muted" id="countInfo">0건</span>
+      <div class="toolbar">
+        <span class="muted" id="countInfo">0건</span>
+        <button class="btn small" id="openAddModalBtn">➕ 새 항목</button>
+        <button class="btn danger small" id="removeSelectedBtn">🗑️ 선택 삭제</button>
+      </div>
     </div>
     <div class="b">
       <div class="bulk-edit-bar" id="bulkEditBar">
@@ -367,7 +373,11 @@ const firebaseConfig = {
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const fmtMoney = n => '₩' + Math.round(n||0).toLocaleString('ko-KR');
-const parseNum = v => v===''||v==null? null : (isNaN(Number(v))? null : Number(v));
+const parseNum = v => {
+  if (v === '' || v == null) return null;
+  const num = Number(v);
+  return isNaN(num) ? null : num;
+};
 const toISO = d => {if(!d)return''; const z=new Date(d); return new Date(z - z.getTimezoneOffset()*60000).toISOString().slice(0,10)};
 const today = () => toISO(new Date());
 
@@ -440,7 +450,7 @@ const CONFIGS = {
     path: 'blog',
     fields: [
       {key:'product', label:'상품', type:'select', options:['블로그','카페','체험단','언론기사']},
-      {key:'category', label:'구분', type:'select', options:['블로그리뷰','단순배포','건바이','월보장','일반형','프리미엄형','릴스']},
+      {key:'category', label:'구분', type:'select', options:['블로그리뷰','단순배포','건바이','월보장','일반형','프리미엄형','블로그','릴스']},
       {key:'client', label:'업체명', type:'text', required:true},
       {key:'mid', label:'Mid', type:'url'},
       {key:'keywords', label:'키워드', type:'text'},
@@ -463,7 +473,10 @@ function getCurrentConfig() {
 }
 
 function getCurrentKey() {
-  return state.currentType === 'place' ? `place_${state.currentSubtype}` : state.currentType;
+  if (state.currentType === 'place') {
+    return `place_${state.currentSubtype}`;
+  }
+  return state.currentType;
 }
 
 function initFirebase() {
@@ -550,7 +563,11 @@ function mk(p, config) {
   
   if (config.fields.find(f => f.key === 'cost' && f.type === 'computed')) {
     if (row.cost === undefined || row.cost === null) {
-      row.cost = (row.totalQty||0) * (row.unitPrice||0);
+      if (config.path === 'blog') {
+        row.cost = (row.quantity||0) * (row.unitPrice||0);
+      } else {
+        row.cost = (row.totalQty||0) * (row.unitPrice||0);
+      }
     }
   }
   
@@ -647,12 +664,13 @@ function switchType(type, subtype = null) {
   $$('.tab').forEach(t => t.classList.remove('active'));
   $(`.tab[data-type="${type}"]`).classList.add('active');
   
+  const placeSubtabs = $('#placeSubtabs');
   if (type === 'place') {
-    $('#placeSubtabs').style.display = 'flex';
+    placeSubtabs.classList.add('show');
     $$('.subtab').forEach(t => t.classList.remove('active'));
     $(`.subtab[data-subtype="${state.currentSubtype}"]`).classList.add('active');
   } else {
-    $('#placeSubtabs').style.display = 'none';
+    placeSubtabs.classList.remove('show');
   }
   
   state.selected.clear();
@@ -673,6 +691,24 @@ function applyFilters(rows) {
   if (f.product && f.product !== 'all') arr = arr.filter(r => r.product === f.product);
   if (f.category && f.category !== 'all') arr = arr.filter(r => r.category === f.category);
   if (f.tax && f.tax !== 'all') arr = arr.filter(r => (f.tax === 'yes' ? r.tax === '발행' : r.tax === '미발행'));
+  
+  if (f.deadline && f.deadline !== 'all') {
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
+    
+    arr = arr.filter(r => {
+      if (!r.endDate) return false;
+      const ed = new Date(r.endDate);
+      ed.setHours(0, 0, 0, 0);
+      const daysUntil = Math.ceil((ed - todayDate) / (1000 * 60 * 60 * 24));
+      
+      if (f.deadline === 'd0') return daysUntil === 0;
+      if (f.deadline === 'd1') return daysUntil === 1;
+      if (f.deadline === 'd3') return daysUntil >= 0 && daysUntil <= 3;
+      if (f.deadline === 'd7') return daysUntil >= 0 && daysUntil <= 7;
+      return false;
+    });
+  }
   
   if (f.date) {
     if (f.periodType === 'day') arr = arr.filter(r => r.startDate === f.date);
@@ -708,6 +744,7 @@ function renderFilters() {
   const container = $('#filtersContainer');
   
   let html = '<div class="filters">';
+  
   html += '<div class="filter-input-wrapper"><input id="q" placeholder="🔎 검색: 업체명/키워드" autocomplete="off" value="' + (f.q || '').replace(/"/g, '&quot;') + '"></div>';
   
   config.fields.forEach(field => {
@@ -720,29 +757,38 @@ function renderFilters() {
   });
   
   html += `<select id="fTax">
-    <option value="all" ${!f.tax||f.tax==='all'?'selected':''}>세금계산서: 전체</option>
+    <option value="all" ${!f.tax||f.tax==='all'?'selected':''}>세금: 전체</option>
     <option value="yes" ${f.tax==='yes'?'selected':''}>발행</option>
     <option value="no" ${f.tax==='no'?'selected':''}>미발행</option>
   </select>`;
   
-  html += `<div class="date-filter-wrap">
-    <input type="date" id="fDate" value="${f.date||''}">
-    <div class="period-btns">
-      <button class="period-btn ${!f.periodType||f.periodType==='day'?'active':''}" data-period="day">일별</button>
-      <button class="period-btn ${f.periodType==='week'?'active':''}" data-period="week">주별</button>
-      <button class="period-btn ${f.periodType==='month'?'active':''}" data-period="month">월별</button>
-    </div>
-  </div>`;
-  
-  html += `<select id="sortSel">
-    <option value="date_desc" ${!f.sort||f.sort==='date_desc'?'selected':''}>정렬: 최신일자</option>
-    <option value="date_asc" ${f.sort==='date_asc'?'selected':''}>정렬: 오래된일자</option>
-    <option value="cost_desc" ${f.sort==='cost_desc'?'selected':''}>정렬: 작업비 ⬇</option>
-    <option value="cost_asc" ${f.sort==='cost_asc'?'selected':''}>정렬: 작업비 ⬆</option>
-    <option value="client_asc" ${f.sort==='client_asc'?'selected':''}>정렬: 업체명 (가→하)</option>
+  html += `<select id="fDeadline">
+    <option value="all" ${!f.deadline||f.deadline==='all'?'selected':''}>종료: 전체</option>
+    <option value="d0" ${f.deadline==='d0'?'selected':''}>🔴 D-0</option>
+    <option value="d1" ${f.deadline==='d1'?'selected':''}>⚠️ D-1</option>
+    <option value="d3" ${f.deadline==='d3'?'selected':''}>🟡 D-3</option>
+    <option value="d7" ${f.deadline==='d7'?'selected':''}>📅 D-7</option>
   </select>`;
   
-  html += '<div class="filter-reset-all"><button class="btn small outline" id="resetFiltersBtn">🔄 필터 초기화</button></div>';
+  html += `<select id="sortSel">
+    <option value="date_desc" ${!f.sort||f.sort==='date_desc'?'selected':''}>정렬: 최신순</option>
+    <option value="date_asc" ${f.sort==='date_asc'?'selected':''}>정렬: 오래된순</option>
+    <option value="cost_desc" ${f.sort==='cost_desc'?'selected':''}>정렬: 작업비↓</option>
+    <option value="cost_asc" ${f.sort==='cost_asc'?'selected':''}>정렬: 작업비↑</option>
+    <option value="client_asc" ${f.sort==='client_asc'?'selected':''}>정렬: 업체명순</option>
+  </select>`;
+  
+  html += '</div>';
+  
+  html += '<div style="margin-top:16px; display:flex; justify-content:space-between; align-items:center">';
+  html += '<div style="display:flex; gap:8px; align-items:center">';
+  html += '<input type="date" id="fDate" value="' + (f.date||'') + '" style="width:auto">';
+  html += '<div class="period-btns">';
+  html += `<button type="button" class="period-btn ${!f.periodType||f.periodType==='day'?'active':''}" data-period="day">일별</button>`;
+  html += `<button type="button" class="period-btn ${f.periodType==='week'?'active':''}" data-period="week">주별</button>`;
+  html += `<button type="button" class="period-btn ${f.periodType==='month'?'active':''}" data-period="month">월별</button>`;
+  html += '</div></div>';
+  html += '<button class="btn small outline" id="resetFiltersBtn">🔄 초기화</button>';
   html += '</div>';
   
   container.innerHTML = html;
@@ -775,8 +821,6 @@ function renderTable() {
   
   const todayDate = new Date();
   todayDate.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(todayDate);
-  tomorrow.setDate(tomorrow.getDate() + 1);
   
   pageRows.forEach(row => {
     const tr = document.createElement('tr');
@@ -784,9 +828,17 @@ function renderTable() {
     if (row.endDate) {
       const ed = new Date(row.endDate);
       ed.setHours(0, 0, 0, 0);
-      if (ed.getTime() === tomorrow.getTime()) {
-        tr.classList.add('deadline-warning');
+      const daysUntil = Math.ceil((ed - todayDate) / (1000 * 60 * 60 * 24));
+      
+      if (daysUntil === 0) {
+        tr.classList.add('deadline-d0');
+        tr.title = '🔴 종료일 D-0: 오늘 종료됩니다!';
+      } else if (daysUntil === 1) {
+        tr.classList.add('deadline-d1');
         tr.title = '⚠️ 종료일 D-1: 내일 종료됩니다!';
+      } else if (daysUntil === 2 || daysUntil === 3) {
+        tr.classList.add('deadline-d23');
+        tr.title = `🟡 종료일 D-${daysUntil}: ${daysUntil}일 후 종료됩니다!`;
       }
     }
     
@@ -874,15 +926,18 @@ function renderTable() {
     tbody.appendChild(tr);
   });
   
-  $('#countInfo').textContent = `${filtered.length}건 (${currentPage}/${totalPages||1} 페이지)`;
+  $('#countInfo').textContent = `${filtered.length}건`;
   renderPagination(totalPages);
   updateBulkEditBar();
   
-  $('#chkAll').onchange = e => {
-    if (e.target.checked) filtered.forEach(r => state.selected.add(r.id));
-    else filtered.forEach(r => state.selected.delete(r.id));
-    renderTable();
-  };
+  const chkAll = $('#chkAll');
+  if (chkAll) {
+    chkAll.onchange = e => {
+      if (e.target.checked) pageRows.forEach(r => state.selected.add(r.id));
+      else pageRows.forEach(r => state.selected.delete(r.id));
+      renderTable();
+    };
+  }
 }
 
 function renderPagination(totalPages) {
@@ -953,7 +1008,7 @@ function startEdit(td, row, field, key) {
   const commit = () => {
     let v = el.value;
     if (field.type === 'number') v = parseNum(v);
-    row[field.key] = v || '';
+    row[field.key] = v !== null ? v : '';
     
     const config = getCurrentConfig();
     if (config.fields.find(f => f.key === 'totalQty' && f.type === 'computed')) {
@@ -964,7 +1019,11 @@ function startEdit(td, row, field, key) {
       }
     }
     if (config.fields.find(f => f.key === 'cost' && f.type === 'computed')) {
-      row.cost = (row.totalQty || 0) * (row.unitPrice || 0);
+      if (config.path === 'blog') {
+        row.cost = (row.quantity || 0) * (row.unitPrice || 0);
+      } else {
+        row.cost = (row.totalQty || 0) * (row.unitPrice || 0);
+      }
     }
     
     saveToFirebase(row, key);
@@ -1146,18 +1205,25 @@ function openBulkEditModal() {
     
     const divClass = ['client', 'mid', 'url', 'keywords', 'note'].includes(field.key) ? 'full' : '';
     
+    const values = selected.map(r => r[field.key]);
+    const uniqueValues = [...new Set(values.filter(v => v !== null && v !== undefined && v !== ''))];
+    const commonValue = uniqueValues.length === 1 ? uniqueValues[0] : '';
+    
     html += `<div class="${divClass}"><label>${field.label}</label>`;
     
     if (field.type === 'select') {
       html += `<select id="b${field.key}">`;
       html += '<option value="">변경 안함</option>';
       field.options.forEach(opt => {
-        html += `<option>${opt}</option>`;
+        const sel = commonValue === opt ? 'selected' : '';
+        html += `<option ${sel}>${opt}</option>`;
       });
       html += '</select>';
     } else {
       const inputType = field.type === 'number' ? 'number' : field.type === 'url' ? 'url' : field.type === 'date' ? 'date' : 'text';
-      html += `<input id="b${field.key}" type="${inputType}">`;
+      const valueAttr = commonValue ? `value="${String(commonValue).replace(/"/g, '&quot;')}"` : '';
+      const placeholder = uniqueValues.length > 1 ? 'placeholder="여러 값"' : '';
+      html += `<input id="b${field.key}" type="${inputType}"${field.type === 'number' ? ' step="any"' : ''} ${valueAttr} ${placeholder}>`;
     }
     
     html += '</div>';
@@ -1212,7 +1278,11 @@ function applyBulkEdit() {
         }
       }
       if (config.fields.find(f => f.key === 'cost' && f.type === 'computed')) {
-        r.cost = (r.totalQty || 0) * (r.unitPrice || 0);
+        if (config.path === 'blog') {
+          r.cost = (r.quantity || 0) * (r.unitPrice || 0);
+        } else {
+          r.cost = (r.totalQty || 0) * (r.unitPrice || 0);
+        }
       }
       
       saveToFirebase(r, key);
@@ -1249,7 +1319,8 @@ function openAddModal() {
     } else {
       const inputType = field.type === 'number' ? 'number' : field.type === 'url' ? 'url' : field.type === 'date' ? 'date' : 'text';
       const defValue = field.type === 'date' && field.key === 'startDate' ? `value="${today()}"` : '';
-      html += `<input id="a${field.key}" type="${inputType}" ${req} ${defValue}>`;
+      const step = field.type === 'number' ? ' step="any"' : '';
+      html += `<input id="a${field.key}" type="${inputType}" ${req} ${defValue}${step}>`;
     }
     
     html += '</div>';
@@ -1277,11 +1348,7 @@ function openAddModal() {
       }
     });
     
-    console.log('📝 등록 데이터:', data);
-    
     const newRow = mk(data, config);
-    console.log('📝 처리된 행:', newRow);
-    
     state.rows[key].unshift(newRow);
     saveToFirebase(newRow, key);
     render();
@@ -1296,8 +1363,10 @@ function closeAddModal() {
 
 function resetAddForm() {
   $('#addForm').reset();
-  const startDateEl = $('#aStartDate');
-  if (startDateEl) startDateEl.value = today();
+  const startDateInputs = $$('[id^="astart"]');
+  startDateInputs.forEach(el => {
+    if (el.type === 'date') el.value = today();
+  });
 }
 
 function exportExcel() {
@@ -1326,23 +1395,47 @@ function exportExcel() {
 function bindFilterEvents() {
   const key = getCurrentKey();
   
-  $('#q').oninput = e => {
-    state.filters[key].q = e.target.value;
-    state.pagination.currentPage = 1;
-    render();
-  };
+  const qInput = $('#q');
+  if (qInput) {
+    let isComposing = false;
+    
+    qInput.addEventListener('compositionstart', () => {
+      isComposing = true;
+    });
+    
+    qInput.addEventListener('compositionend', (e) => {
+      isComposing = false;
+      state.filters[key].q = e.target.value;
+      state.pagination.currentPage = 1;
+      render();
+    });
+    
+    qInput.addEventListener('input', (e) => {
+      if (!isComposing) {
+        state.filters[key].q = e.target.value;
+        state.pagination.currentPage = 1;
+        render();
+      }
+    });
+  }
   
-  $('#fDate').onchange = e => {
-    state.filters[key].date = e.target.value;
-    state.pagination.currentPage = 1;
-    render();
-  };
+  const fDate = $('#fDate');
+  if (fDate) {
+    fDate.onchange = e => {
+      state.filters[key].date = e.target.value;
+      state.pagination.currentPage = 1;
+      render();
+    };
+  }
   
-  $('#sortSel').onchange = e => {
-    state.filters[key].sort = e.target.value;
-    state.pagination.currentPage = 1;
-    render();
-  };
+  const sortSel = $('#sortSel');
+  if (sortSel) {
+    sortSel.onchange = e => {
+      state.filters[key].sort = e.target.value;
+      state.pagination.currentPage = 1;
+      render();
+    };
+  }
   
   const fprod = $('#fproduct');
   if (fprod) {
@@ -1362,11 +1455,23 @@ function bindFilterEvents() {
     };
   }
   
-  $('#fTax').onchange = e => {
-    state.filters[key].tax = e.target.value;
-    state.pagination.currentPage = 1;
-    render();
-  };
+  const fTax = $('#fTax');
+  if (fTax) {
+    fTax.onchange = e => {
+      state.filters[key].tax = e.target.value;
+      state.pagination.currentPage = 1;
+      render();
+    };
+  }
+  
+  const fDeadline = $('#fDeadline');
+  if (fDeadline) {
+    fDeadline.onchange = e => {
+      state.filters[key].deadline = e.target.value;
+      state.pagination.currentPage = 1;
+      render();
+    };
+  }
   
   $$('.period-btn').forEach(b => {
     b.onclick = () => {
@@ -1378,11 +1483,14 @@ function bindFilterEvents() {
     };
   });
   
-  $('#resetFiltersBtn').onclick = () => {
-    state.filters[key] = {periodType: 'day'};
-    state.pagination.currentPage = 1;
-    render();
-  };
+  const resetBtn = $('#resetFiltersBtn');
+  if (resetBtn) {
+    resetBtn.onclick = () => {
+      state.filters[key] = {periodType: 'day'};
+      state.pagination.currentPage = 1;
+      render();
+    };
+  }
 }
 
 function render() {
@@ -1395,6 +1503,10 @@ function bindEvents() {
   $$('.tab').forEach(tab => {
     tab.onclick = () => {
       const type = tab.dataset.type;
+      if (type === 'finance') {
+        alert('💰 매출/매입 기능은 준비 중입니다!');
+        return;
+      }
       switchType(type, type === 'place' ? 'reward' : null);
     };
   });
