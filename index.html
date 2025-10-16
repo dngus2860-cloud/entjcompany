@@ -562,13 +562,7 @@ function mk(p, config) {
   }
   
   if (config.fields.find(f => f.key === 'cost' && f.type === 'computed')) {
-    if (row.cost === undefined || row.cost === null) {
-      if (config.path === 'blog') {
-        row.cost = (row.quantity||0) * (row.unitPrice||0);
-      } else {
-        row.cost = (row.totalQty||0) * (row.unitPrice||0);
-      }
-    }
+    row.cost = (row.totalQty||0) * (row.unitPrice||0);
   }
   
   return row;
@@ -1019,11 +1013,7 @@ function startEdit(td, row, field, key) {
       }
     }
     if (config.fields.find(f => f.key === 'cost' && f.type === 'computed')) {
-      if (config.path === 'blog') {
-        row.cost = (row.quantity || 0) * (row.unitPrice || 0);
-      } else {
-        row.cost = (row.totalQty || 0) * (row.unitPrice || 0);
-      }
+      row.cost = (row.totalQty || 0) * (row.unitPrice || 0);
     }
     
     saveToFirebase(row, key);
@@ -1278,11 +1268,7 @@ function applyBulkEdit() {
         }
       }
       if (config.fields.find(f => f.key === 'cost' && f.type === 'computed')) {
-        if (config.path === 'blog') {
-          r.cost = (r.quantity || 0) * (r.unitPrice || 0);
-        } else {
-          r.cost = (r.totalQty || 0) * (r.unitPrice || 0);
-        }
+        r.cost = (r.totalQty || 0) * (r.unitPrice || 0);
       }
       
       saveToFirebase(r, key);
