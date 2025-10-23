@@ -84,9 +84,9 @@
   input[type="date"]{position:relative; color-scheme:dark}
   input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer; filter:invert(0.7)}
 
-  input, select{width:100%; padding:14px 18px; border-radius:12px; border:2px solid var(--border); background:var(--card); color:var(--text); font-size:15px; font-weight:500; transition:all .3s}
-  input:focus, select:focus{outline:none; border-color:var(--primary); box-shadow:0 0 0 4px rgba(99,102,241,.15); background:var(--panel)}
-  input::placeholder{color:var(--muted); opacity:0.7}
+  input, select, textarea{width:100%; padding:14px 18px; border-radius:12px; border:2px solid var(--border); background:var(--card); color:var(--text); font-size:15px; font-weight:500; transition:all .3s}
+  input:focus, select:focus, textarea:focus{outline:none; border-color:var(--primary); box-shadow:0 0 0 4px rgba(99,102,241,.15); background:var(--panel)}
+  input::placeholder, textarea::placeholder{color:var(--muted); opacity:0.7}
   select{cursor:pointer; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b94a8' d='M6 9L1 4h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:40px}
   select:hover{border-color:var(--primary-light)}
   select option{padding:10px; background:var(--card); color:var(--text)}
@@ -599,6 +599,25 @@
     </div>
     <div class="mb">
       <form id="addForm" class="form-grid"></form>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="memoModalBack">
+  <div class="modal" style="max-width:600px">
+    <div class="mh">
+      <strong>📝 메모 편집</strong>
+      <button class="btn small outline" id="closeMemoModalBtn">✕ 닫기</button>
+    </div>
+    <div class="mb">
+      <div style="margin-bottom:16px">
+        <label style="display:block; font-size:14px; font-weight:600; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:.6px">메모 내용</label>
+        <textarea id="memoTextarea" rows="8" style="width:100%; padding:14px 18px; border-radius:12px; border:2px solid var(--border); background:var(--card); color:var(--text); font-size:15px; font-weight:500; resize:vertical; font-family:inherit; line-height:1.6" placeholder="메모를 입력하세요..."></textarea>
+      </div>
+      <div style="display:flex; gap:12px; justify-content:flex-end">
+        <button class="btn outline" id="cancelMemoBtn">취소</button>
+        <button class="btn" id="saveMemoBtn">💾 저장</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2910,7 +2929,9 @@ function renderFinanceTable(type) {
         <option value="대기중" ${(row.contractStatus || '') === '대기중' ? 'selected' : ''}>대기중</option>
         <option value="계약종료" ${(row.contractStatus || '') === '계약종료' ? 'selected' : ''}>계약종료</option>
       </select></td>
-      <td class="fin-cell nowrap" data-type="${type}" data-id="${row.id}" data-field="memo">${row.memo || ''}</td>
+      <td class="fin-cell center" data-type="${type}" data-id="${row.id}" data-field="memo" title="${row.memo || '클릭하여 메모 작성'}" style="cursor:pointer; font-size:18px">
+        ${row.memo ? '📝' : '➕'}
+      </td>
       <td class="fin-cell center" data-type="${type}" data-id="${row.id}" data-field="tax">${row.tax || '미발행'}</td>
     `;
     tbody.appendChild(tr);
@@ -3856,6 +3877,12 @@ function startFinEdit(cell, type, id, field) {
   const row = finData.find(r => r.id === id);
   if (!row) return;
   
+  // 메모 필드는 모달로 처리
+  if (field === 'memo') {
+    openMemoModal(row, type);
+    return;
+  }
+  
   const oldValue = row[field];
   let input;
   
@@ -4060,6 +4087,67 @@ function saveFinanceData(data, type) {
   } catch (e) {
     console.error('Firebase 저장 실패:', e);
   }
+}
+
+function openMemoModal(row, type) {
+  const modal = $('#memoModalBack');
+  const textarea = $('#memoTextarea');
+  const saveBtn = $('#saveMemoBtn');
+  const cancelBtn = $('#cancelMemoBtn');
+  const closeBtn = $('#closeMemoModalBtn');
+  
+  if (!modal || !textarea) return;
+  
+  // 현재 메모 내용 설정
+  textarea.value = row.memo || '';
+  
+  // 모달 열기
+  modal.classList.add('active');
+  textarea.focus();
+  
+  // 저장 버튼 이벤트
+  const handleSave = () => {
+    row.memo = textarea.value;
+    saveFinanceData(row, type);
+    modal.classList.remove('active');
+    renderFinance();
+    cleanup();
+  };
+  
+  // 취소 버튼 이벤트
+  const handleCancel = () => {
+    modal.classList.remove('active');
+    cleanup();
+  };
+  
+  // 이벤트 정리 함수
+  const cleanup = () => {
+    saveBtn.removeEventListener('click', handleSave);
+    cancelBtn.removeEventListener('click', handleCancel);
+    closeBtn.removeEventListener('click', handleCancel);
+    modal.removeEventListener('click', handleBackdropClick);
+    document.removeEventListener('keydown', handleEsc);
+  };
+  
+  // 배경 클릭 시 닫기
+  const handleBackdropClick = (e) => {
+    if (e.target === modal) {
+      handleCancel();
+    }
+  };
+  
+  // ESC 키로 닫기
+  const handleEsc = (e) => {
+    if (e.key === 'Escape') {
+      handleCancel();
+    }
+  };
+  
+  saveBtn.addEventListener('click', handleSave);
+  cancelBtn.addEventListener('click', handleCancel);
+  closeBtn.addEventListener('click', handleCancel);
+  modal.addEventListener('click', handleBackdropClick);
+  document.addEventListener('keydown', handleEsc);
 }
 
 function loadFinanceData(type) {
