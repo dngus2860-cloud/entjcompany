@@ -709,39 +709,72 @@ let currentUser = null;
 
 // 인증 초기화
 function initAuth() {
-  if (typeof firebase !== 'undefined' && firebase.auth) {
+  console.log('Initializing authentication...');
+  
+  if (typeof firebase === 'undefined') {
+    console.error('Firebase not loaded');
+    showLogin();
+    return;
+  }
+  
+  if (!firebase.apps || firebase.apps.length === 0) {
+    console.error('Firebase App not initialized');
+    showLogin();
+    return;
+  }
+  
+  try {
     auth = firebase.auth();
+    console.log('Firebase Auth initialized');
     
     // 인증 상태 변경 감지
     auth.onAuthStateChanged(user => {
       if (user) {
+        console.log('User logged in:', user.email);
         currentUser = user;
         showDashboard();
         updateUserInfo(user.email);
       } else {
+        console.log('User not logged in');
         currentUser = null;
         showLogin();
       }
     });
-  } else {
-    console.error('Firebase Auth not loaded');
+  } catch (error) {
+    console.error('Auth initialization error:', error);
     showLogin();
   }
 }
 
 // 로그인 처리
 async function handleLogin(email, password) {
+  console.log('Login attempt for:', email);
+  
   const loginBtn = $('#loginBtn');
   const loginError = $('#loginError');
   
   if (loginBtn) loginBtn.disabled = true;
   if (loginError) loginError.style.display = 'none';
   
+  if (!auth) {
+    console.error('Auth not initialized');
+    if (loginError) {
+      loginError.textContent = 'Firebase 인증이 초기화되지 않았습니다. 페이지를 새로고침해주세요.';
+      loginError.style.display = 'block';
+    }
+    if (loginBtn) loginBtn.disabled = false;
+    return;
+  }
+  
   try {
-    await auth.signInWithEmailAndPassword(email, password);
+    console.log('Attempting to sign in...');
+    const result = await auth.signInWithEmailAndPassword(email, password);
+    console.log('Login successful:', result.user.email);
     // 로그인 성공 - onAuthStateChanged가 처리함
   } catch (error) {
     console.error('로그인 실패:', error);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
     if (loginError) {
       loginError.textContent = getErrorMessage(error.code);
       loginError.style.display = 'block';
@@ -3501,6 +3534,8 @@ function render() {
 }
 
 function initApp() {
+  console.log('Initializing app...');
+  
   const pd = matchMedia('(prefers-color-scheme: dark)').matches;
   document.documentElement.setAttribute('data-theme', pd ? 'dark' : 'light');
   
@@ -3527,8 +3562,13 @@ function initApp() {
     });
   }
   
-  initAuth();
+  // 중요: Firebase 먼저 초기화, 그 다음 Auth 초기화
   initFirebase();
+  
+  // Firebase 초기화 대기 후 Auth 초기화
+  setTimeout(() => {
+    initAuth();
+  }, 500);
   
   $$('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
