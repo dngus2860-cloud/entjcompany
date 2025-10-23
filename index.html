@@ -1079,8 +1079,14 @@ function switchType(type) {
   
   const cloneFinSelectedBtn = $('#cloneFinSelectedBtn');
   if (cloneFinSelectedBtn) {
-    cloneFinSelectedBtn.addEventListener('click', () => {
+    // 기존 이벤트 리스너 제거 (중복 방지)
+    cloneFinSelectedBtn.replaceWith(cloneFinSelectedBtn.cloneNode(true));
+    const newCloneBtn = $('#cloneFinSelectedBtn');
+    
+    newCloneBtn.addEventListener('click', () => {
       if (!state.finSelected.size) return alert('복제할 항목을 선택하세요');
+      
+      if (!confirm(`선택한 ${state.finSelected.size}개 항목을 복제하시겠습니까?`)) return;
       
       let clonedCount = 0;
       state.finSelected.forEach(key => {
@@ -1108,9 +1114,13 @@ function switchType(type) {
   
   const finBulkEditBtn = $('#finBulkEditBtn');
   if (finBulkEditBtn) {
-    finBulkEditBtn.addEventListener('click', () => {
+    // 기존 이벤트 리스너 제거 (중복 방지)
+    finBulkEditBtn.replaceWith(finBulkEditBtn.cloneNode(true));
+    const newBulkBtn = $('#finBulkEditBtn');
+    
+    newBulkBtn.addEventListener('click', () => {
       if (!state.finSelected.size) return alert('선택하세요');
-      alert('일괄수정 기능은 개별 셀을 클릭하여 편집해주세요.');
+      openFinBulkEditModal();
     });
   }
   
@@ -3146,6 +3156,150 @@ function updateFinBulkEditBar() {
       bar.classList.remove('active');
     }
   }
+}
+
+
+function openFinBulkEditModal() {
+  if (!state.finSelected.size) {
+    alert('일괄수정할 항목을 선택해주세요.');
+    return;
+  }
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-back active';
+  modal.id = 'finBulkEditModal';
+  
+  const content_div = document.createElement('div');
+  content_div.className = 'modal';
+  
+  content_div.innerHTML = `
+    <div class="mh">
+      <strong>✏️ 일괄수정 (${state.finSelected.size}개 항목)</strong>
+      <button class="btn small outline" id="closeBulkEditModal">✕ 닫기</button>
+    </div>
+    <div class="mb">
+      <div style="padding: 16px; background: rgba(99,102,241,0.1); border: 2px solid var(--primary); border-radius: 12px; margin-bottom: 20px">
+        <p style="font-size: 14px; color: var(--text); line-height: 1.6">
+          ℹ️ 선택한 ${state.finSelected.size}개 항목의 공통 필드를 일괄 수정합니다.<br>
+          비어있는 필드는 수정되지 않습니다.
+        </p>
+      </div>
+      <form id="finBulkEditForm" class="form-grid">
+        <div>
+          <label>담당자</label>
+          <select id="bulkManager">
+            <option value="">변경 안 함</option>
+            <option value="전병황">전병황</option>
+            <option value="강태우">강태우</option>
+            <option value="오영은">오영은</option>
+            <option value="김하늬">김하늬</option>
+            <option value="김우현">김우현</option>
+            <option value="공민경">공민경</option>
+          </select>
+        </div>
+        <div>
+          <label>입금여부</label>
+          <select id="bulkPaid">
+            <option value="">변경 안 함</option>
+            <option value="미입금">미입금</option>
+            <option value="입금완료">입금완료</option>
+            <option value="일부입금">일부입금</option>
+          </select>
+        </div>
+        <div>
+          <label>세금</label>
+          <select id="bulkTax">
+            <option value="">변경 안 함</option>
+            <option value="미발행">미발행</option>
+            <option value="발행">발행</option>
+          </select>
+        </div>
+        <div>
+          <label>월별</label>
+          <input type="month" id="bulkMonth">
+          <small style="color: var(--muted); font-size: 12px">비어있으면 변경 안 함</small>
+        </div>
+        <div style="grid-column: 1/-1">
+          <label>메모 추가 (기존 메모에 추가됩니다)</label>
+          <input type="text" id="bulkMemoAppend" placeholder="추가할 메모 내용">
+        </div>
+        <div style="grid-column: 1/-1; display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px">
+          <button type="button" class="btn outline" id="cancelBulkEdit">취소</button>
+          <button type="submit" class="btn">일괄 적용</button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  modal.appendChild(content_div);
+  document.body.appendChild(modal);
+  
+  // 취소 버튼
+  $('#closeBulkEditModal')?.addEventListener('click', () => {
+    modal.remove();
+  });
+  
+  $('#cancelBulkEdit')?.addEventListener('click', () => {
+    modal.remove();
+  });
+  
+  // 일괄 적용
+  $('#finBulkEditForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const bulkManager = $('#bulkManager')?.value;
+    const bulkPaid = $('#bulkPaid')?.value;
+    const bulkTax = $('#bulkTax')?.value;
+    const bulkMonth = $('#bulkMonth')?.value;
+    const bulkMemoAppend = $('#bulkMemoAppend')?.value;
+    
+    if (!bulkManager && !bulkPaid && !bulkTax && !bulkMonth && !bulkMemoAppend) {
+      alert('변경할 항목을 선택해주세요.');
+      return;
+    }
+    
+    if (!confirm(`선택한 ${state.finSelected.size}개 항목을 일괄 수정하시겠습니까?`)) {
+      return;
+    }
+    
+    let updatedCount = 0;
+    
+    state.finSelected.forEach(key => {
+      const parts = key.split('_');
+      const type = parts[0];
+      const id = parts.slice(1).join('_');
+      
+      const row = state.financeData[type].find(r => r.id === id);
+      if (row) {
+        // 변경사항 적용
+        if (bulkManager) row.manager = bulkManager;
+        if (bulkPaid) row.paid = bulkPaid;
+        if (bulkTax) row.tax = bulkTax;
+        if (bulkMonth) row.month = bulkMonth;
+        if (bulkMemoAppend) {
+          row.memo = (row.memo || '') + (row.memo ? ' / ' : '') + bulkMemoAppend;
+        }
+        
+        // 저장
+        saveFinanceData(row, type);
+        updatedCount++;
+      }
+    });
+    
+    if (updatedCount > 0) {
+      alert(`${updatedCount}개 항목이 일괄 수정되었습니다.`);
+      state.finSelected.clear();
+      renderFinance();
+      modal.remove();
+    }
+  });
+  
+  // 모달 외부 클릭 시 닫기
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.remove();
+    }
+  });
 }
 
 function openFinAddModal() {
