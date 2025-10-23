@@ -33,10 +33,10 @@
   .connection-status.local{background:var(--amber); color:white}
   .connection-status .indicator{width:9px; height:9px; border-radius:50%; background:white; animation:pulse 2s infinite}
   @keyframes pulse{0%,100%{opacity:1} 50%{opacity:0.3}}
-  @keyframes urgentPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.7)} 50%{box-shadow:0 0 0 8px rgba(239,68,68,0)}}
-  @keyframes warningGlow{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0.7)} 50%{box-shadow:0 0 0 6px rgba(245,158,11,0)}}
-  @keyframes shake{0%,100%{transform:translateX(0)} 10%,30%,50%,70%,90%{transform:translateX(-2px)} 20%,40%,60%,80%{transform:translateX(2px)}}
-  @keyframes glow{0%,100%{box-shadow:0 0 5px rgba(239,68,68,0.5), 0 0 10px rgba(239,68,68,0.3)} 50%{box-shadow:0 0 10px rgba(239,68,68,0.8), 0 0 20px rgba(239,68,68,0.5)}}
+  @keyframes urgentPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)} 50%{box-shadow:0 0 0 6px rgba(239,68,68,0)}}
+  @keyframes warningGlow{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0.4)} 50%{box-shadow:0 0 0 4px rgba(245,158,11,0)}}
+  @keyframes gentleGlow{0%,100%{box-shadow:0 0 3px rgba(239,68,68,0.4)} 50%{box-shadow:0 0 8px rgba(239,68,68,0.6)}}
+  @keyframes softPulse{0%,100%{opacity:1} 50%{opacity:0.7}}
 
   header{background:var(--panel); border:1px solid var(--border); border-radius:20px; padding:28px 36px; box-shadow:var(--shadow); display:flex; align-items:center; justify-content:space-between; position:relative; overflow:hidden}
   header::before{content:''; position:absolute; top:0; left:0; right:0; height:4px; background:var(--gradient-1)}
@@ -125,6 +125,31 @@
 
   .month-item{margin-bottom:10px; padding:10px 14px; background:var(--card2); border-radius:10px; border-left:3px solid var(--primary); cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .2s; font-size:14px}
   .month-item:hover{background:var(--card); transform:translateX(6px); box-shadow:0 2px 8px rgba(99,102,241,.15)}
+  
+  /* 드래그 앤 드롭 스타일 */
+  .drag-handle{cursor:grab; font-size:18px; color:var(--muted); padding:0 8px; display:inline-flex; align-items:center; justify-content:center; transition:color .2s; user-select:none}
+  .drag-handle:hover{color:var(--primary-light)}
+  .drag-handle:active{cursor:grabbing}
+  tbody tr.dragging{opacity:0.3; background:rgba(99,102,241,.2); box-shadow:0 4px 12px rgba(0,0,0,.3)}
+  tbody tr.drag-over{border-top:3px solid var(--primary) !important; background:rgba(99,102,241,.15)}
+  tbody tr[draggable="true"]{transition:all .2s}
+  
+  /* 날짜 범위 선택기 스타일 - 모달 형태 */
+  .date-range-modal-back{position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:2000; padding:20px}
+  .date-range-modal{background:var(--panel); border:2px solid var(--border); border-radius:20px; box-shadow:0 30px 80px rgba(0,0,0,.6); width:450px; max-width:100%; padding:28px}
+  .date-range-modal-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid var(--border)}
+  .date-range-modal-header strong{font-size:20px; font-weight:700; color:var(--primary-light)}
+  .date-picker-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px}
+  .date-picker-field{display:flex; flex-direction:column; gap:10px}
+  .date-picker-field label{font-size:13px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px}
+  .date-picker-field input[type="date"]{width:100%; padding:12px 16px; border-radius:10px; border:2px solid var(--border); background:var(--card); color:var(--text); font-size:15px; font-weight:500; transition:all .3s}
+  .date-picker-field input[type="date"]:focus{border-color:var(--primary); box-shadow:0 0 0 4px rgba(99,102,241,.15); outline:none}
+  .date-picker-actions{display:flex; gap:12px; justify-content:flex-end; padding-top:16px; border-top:2px solid var(--border)}
+  .date-picker-actions button{padding:12px 24px; border-radius:10px; border:none; cursor:pointer; font-weight:600; font-size:15px; transition:all .3s}
+  .date-picker-actions .btn-apply{background:var(--primary); color:white; box-shadow:0 4px 12px rgba(99,102,241,.3)}
+  .date-picker-actions .btn-apply:hover{background:var(--primary-light); transform:translateY(-2px)}
+  .date-picker-actions .btn-cancel{background:var(--card2); color:var(--text); border:2px solid var(--border)}
+  .date-picker-actions .btn-cancel:hover{background:var(--card); border-color:var(--primary)}
 
   .bulk-edit-bar{background:linear-gradient(135deg, rgba(99,102,241,.1), rgba(139,92,246,.1)); border:2px solid var(--primary); border-radius:16px; padding:18px 24px; margin-bottom:20px; display:none; align-items:center; gap:18px}
   .bulk-edit-bar.active{display:flex}
@@ -195,8 +220,8 @@
   .fin-cell.num{text-align:right; font-variant-numeric:tabular-nums}
 
   .d-day-badge{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; text-transform:uppercase; margin-left:10px}
-  .d-day-badge.d-0{background:rgba(239,68,68,0.2); color:var(--red); border:2px solid var(--red); animation:urgentPulse 2s infinite, shake 0.5s infinite}
-  .d-day-badge.d-1{background:rgba(245,158,11,0.2); color:var(--amber); border:2px solid var(--amber); animation:warningGlow 2.5s infinite}
+  .d-day-badge.d-0{background:rgba(239,68,68,0.2); color:var(--red); border:2px solid var(--red); animation:urgentPulse 3s ease-in-out infinite}
+  .d-day-badge.d-1{background:rgba(245,158,11,0.2); color:var(--amber); border:2px solid var(--amber); animation:warningGlow 3.5s ease-in-out infinite}
   .d-day-badge.d-3{background:rgba(34,197,94,0.15); color:var(--green); border:1px solid var(--green)}
   .d-day-badge.d-7{background:rgba(99,102,241,0.15); color:var(--primary); border:1px solid var(--primary)}
   
@@ -204,8 +229,8 @@
   tr.warning-row{background:rgba(245,158,11,0.08) !important; border-left:4px solid var(--amber)}
   
   .deadline-cell{position:relative; transition:all 0.3s}
-  .deadline-cell.urgent{animation:glow 2s infinite; font-weight:700; color:var(--red)}
-  .deadline-cell.warning{font-weight:600; color:var(--amber)}
+  .deadline-cell.urgent{animation:gentleGlow 3s ease-in-out infinite; font-weight:700; color:var(--red)}
+  .deadline-cell.warning{font-weight:600; color:var(--amber); animation:softPulse 3s ease-in-out infinite}
 
   .profit-indicator{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:8px; font-weight:700; font-size:14px}
   .profit-indicator.positive{background:rgba(34,197,94,0.15); color:var(--green)}
@@ -419,7 +444,7 @@
           <div class="filter-group">
             <label class="filter-label">🔄 정렬</label>
             <select id="finSortOrder">
-              <option value="">기본</option>
+              <option value="order_asc">📝 등록순</option>
               <option value="created_desc">📆 등록일 ↓</option>
               <option value="created_asc">📆 등록일 ↑</option>
               <option value="revenue_desc">💰 매출 ↓</option>
@@ -436,29 +461,42 @@
       </div>
 
       <div style="margin-bottom:24px; padding:20px; background:var(--card2); border-radius:12px; border:2px solid var(--border)">
-        <label class="filter-label" style="font-size:14px; margin-bottom:10px; display:block">📊 월별 조회</label>
-        <select id="financeMonth" style="width:220px">
-          <option value="">전체 월</option>
-          <option value="1월">1월</option>
-          <option value="2월">2월</option>
-          <option value="3월">3월</option>
-          <option value="4월">4월</option>
-          <option value="5월">5월</option>
-          <option value="6월">6월</option>
-          <option value="7월">7월</option>
-          <option value="8월">8월</option>
-          <option value="9월">9월</option>
-          <option value="10월">10월</option>
-          <option value="11월">11월</option>
-          <option value="12월">12월</option>
-        </select>
+        <div style="display:flex; gap:20px; align-items:flex-end">
+          <div>
+            <label class="filter-label" style="font-size:14px; margin-bottom:10px; display:block">📊 월별 조회</label>
+            <select id="financeMonth" style="width:220px">
+              <option value="">전체 월</option>
+              <option value="1월">1월</option>
+              <option value="2월">2월</option>
+              <option value="3월">3월</option>
+              <option value="4월">4월</option>
+              <option value="5월">5월</option>
+              <option value="6월">6월</option>
+              <option value="7월">7월</option>
+              <option value="8월">8월</option>
+              <option value="9월">9월</option>
+              <option value="10월">10월</option>
+              <option value="11월">11월</option>
+              <option value="12월">12월</option>
+            </select>
+          </div>
+          <div>
+            <label class="filter-label" style="font-size:14px; margin-bottom:10px; display:block">🔖 계약 상태</label>
+            <select id="contractStatus" style="width:220px">
+              <option value="">전체</option>
+              <option value="진행중">진행중</option>
+              <option value="대기중">대기중</option>
+              <option value="계약종료">계약종료</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div class="fin-section">
         <div class="fin-title">📍 플레이스 작업 <span class="fin-count" id="finPlaceCount"></span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th class="center"><input type="checkbox" id="chkAllFinPlace"></th><th class="center">월별</th><th class="center">담당자</th><th>업체명</th><th>대표</th><th class="num">매출</th><th class="center">입금여부</th><th>작업기간</th><th class="num">작업비</th><th class="num">영업이익</th><th class="num">순이익율</th><th>메모</th><th class="center">세금</th></tr></thead>
+            <thead><tr><th class="center" style="width:40px">↕</th><th class="center"><input type="checkbox" id="chkAllFinPlace"></th><th class="center">월별</th><th class="center">담당자</th><th>업체명</th><th>대표</th><th class="num">매출</th><th class="center">입금여부</th><th>작업기간</th><th class="num">작업비</th><th class="num">영업이익</th><th class="num">순이익율</th><th class="center">계약 상태</th><th>메모</th><th class="center">세금</th></tr></thead>
             <tbody id="finPlace"></tbody>
           </table>
         </div>
@@ -481,7 +519,7 @@
         <div class="fin-title">📝 블로그 작업 <span class="fin-count" id="finBlogCount"></span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th class="center"><input type="checkbox" id="chkAllFinBlog"></th><th class="center">월별</th><th class="center">담당자</th><th>업체명</th><th>대표</th><th class="num">매출</th><th class="center">입금여부</th><th>작업기간</th><th class="num">작업비</th><th class="num">영업이익</th><th class="num">순이익율</th><th>메모</th><th class="center">세금</th></tr></thead>
+            <thead><tr><th class="center" style="width:40px">↕</th><th class="center"><input type="checkbox" id="chkAllFinBlog"></th><th class="center">월별</th><th class="center">담당자</th><th>업체명</th><th>대표</th><th class="num">매출</th><th class="center">입금여부</th><th>작업기간</th><th class="num">작업비</th><th class="num">영업이익</th><th class="num">순이익율</th><th class="center">계약 상태</th><th>메모</th><th class="center">세금</th></tr></thead>
             <tbody id="finBlog"></tbody>
           </table>
         </div>
@@ -504,7 +542,7 @@
         <div class="fin-title">🎯 프로젝트 <span class="fin-count" id="finProjectCount"></span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th class="center"><input type="checkbox" id="chkAllFinProject"></th><th class="center">월별</th><th class="center">담당자</th><th>업체명</th><th>대표</th><th class="num">매출</th><th class="center">입금여부</th><th>작업기간</th><th class="num">작업비</th><th class="num">영업이익</th><th class="num">순이익율</th><th>메모</th><th class="center">세금</th></tr></thead>
+            <thead><tr><th class="center" style="width:40px">↕</th><th class="center"><input type="checkbox" id="chkAllFinProject"></th><th class="center">월별</th><th class="center">담당자</th><th>업체명</th><th>대표</th><th class="num">매출</th><th class="center">입금여부</th><th>작업기간</th><th class="num">작업비</th><th class="num">영업이익</th><th class="num">순이익율</th><th class="center">계약 상태</th><th>메모</th><th class="center">세금</th></tr></thead>
             <tbody id="finProject"></tbody>
           </table>
         </div>
@@ -1184,9 +1222,15 @@ function applyFilters(rows) {
     });
   }
   
-  const [sf, dir] = (f.sort || 'date_desc').split('_');
+  const [sf, dir] = (f.sort || 'order_asc').split('_');
   const mul = dir === 'asc' ? 1 : -1;
   arr.sort((a, b) => {
+    if (sf === 'order') {
+      // order 필드가 없으면 9999로 설정하여 뒤로 보냄
+      const orderA = typeof a.order === 'number' ? a.order : 9999;
+      const orderB = typeof b.order === 'number' ? b.order : 9999;
+      return (orderA - orderB) * mul;
+    }
     if (sf === 'date') return (a.startDate || '').localeCompare(b.startDate || '') * mul;
     if (sf === 'cost') {
       const costA = config.path === 'project' ? (a.totalSpent || 0) : (a.cost || 0);
@@ -1561,7 +1605,8 @@ function renderFilters() {
     <div class="filter-group">
       <label class="filter-label">🔄 정렬</label>
       <select id="fsort">
-        <option value="date_desc" ${!f.sort||f.sort==='date_desc'?'selected':''}>📆 최신순</option>
+        <option value="order_asc" ${!f.sort||f.sort==='order_asc'?'selected':''}>📝 등록순</option>
+        <option value="date_desc" ${f.sort==='date_desc'?'selected':''}>📆 최신순</option>
         <option value="date_asc" ${f.sort==='date_asc'?'selected':''}>📆 오래된순</option>
         <option value="cost_desc" ${f.sort==='cost_desc'?'selected':''}>💰 ${sortLabel} 높은순</option>
         <option value="cost_asc" ${f.sort==='cost_asc'?'selected':''}>💰 ${sortLabel} 낮은순</option>
@@ -1681,7 +1726,7 @@ function renderTable() {
   const titleEl = $('#listTitle');
   if(titleEl) titleEl.textContent = config.name;
   
-  let h = '<tr><th class="center"><input type="checkbox" id="chkAll"></th>';
+  let h = '<tr><th class="center" style="width:40px">↕</th><th class="center"><input type="checkbox" id="chkAll"></th>';
   config.fields.forEach(f => h += `<th class="${f.type === 'number' || f.type === 'computed' ? 'num' : ''}">${f.label}</th>`);
   h += '</tr>';
   
@@ -1698,10 +1743,21 @@ function renderTable() {
   const start = (currentPage - 1) * perPage;
   const pageRows = filtered.slice(start, start + perPage);
   
-  pageRows.forEach(row => {
+  pageRows.forEach((row, rowIndex) => {
     const tr = document.createElement('tr');
     const rowClass = getRowClass(row.endDate);
     if (rowClass) tr.className = rowClass;
+    
+    // 드래그 가능 설정
+    tr.draggable = true;
+    tr.dataset.rowId = row.id;
+    tr.dataset.rowIndex = rowIndex;
+    
+    // 드래그 핸들 추가
+    const tdHandle = document.createElement('td');
+    tdHandle.className = 'center';
+    tdHandle.innerHTML = '<span class="drag-handle">☰</span>';
+    tr.appendChild(tdHandle);
     
     const td0 = document.createElement('td');
     td0.className = 'center';
@@ -1878,6 +1934,83 @@ function renderTable() {
     renderTable();
   });
   p.appendChild(next);
+  
+  // 드래그 앤 드롭 이벤트 핸들러 추가
+  setupDragAndDrop();
+}
+
+function setupDragAndDrop() {
+  const tbody = $('#tbody');
+  if (!tbody) return;
+  
+  let draggedRow = null;
+  let draggedData = null;
+  
+  tbody.querySelectorAll('tr').forEach(tr => {
+    tr.addEventListener('dragstart', (e) => {
+      draggedRow = tr;
+      draggedData = state.rows[state.currentType].find(r => r.id === tr.dataset.rowId);
+      tr.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/html', tr.innerHTML);
+    });
+    
+    tr.addEventListener('dragend', (e) => {
+      tr.classList.remove('dragging');
+      tbody.querySelectorAll('tr').forEach(row => row.classList.remove('drag-over'));
+    });
+    
+    tr.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      
+      const targetRow = e.currentTarget;
+      if (draggedRow && targetRow !== draggedRow) {
+        tbody.querySelectorAll('tr').forEach(row => row.classList.remove('drag-over'));
+        targetRow.classList.add('drag-over');
+      }
+    });
+    
+    tr.addEventListener('dragleave', (e) => {
+      const targetRow = e.currentTarget;
+      targetRow.classList.remove('drag-over');
+    });
+    
+    tr.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const targetRow = e.currentTarget;
+      targetRow.classList.remove('drag-over');
+      
+      if (draggedRow && targetRow !== draggedRow && draggedData) {
+        const targetId = targetRow.dataset.rowId;
+        const targetData = state.rows[state.currentType].find(r => r.id === targetId);
+        
+        if (targetData) {
+          // 배열에서 원본 위치 찾기
+          const rows = state.rows[state.currentType];
+          const draggedIndex = rows.findIndex(r => r.id === draggedData.id);
+          const targetIndex = rows.findIndex(r => r.id === targetData.id);
+          
+          // 배열 순서 변경
+          rows.splice(draggedIndex, 1);
+          const newTargetIndex = rows.findIndex(r => r.id === targetData.id);
+          rows.splice(newTargetIndex, 0, draggedData);
+          
+          // Firebase에 순서 정보 저장
+          rows.forEach((row, index) => {
+            row.order = index;
+            if (state.useFirebase && state.isFirebaseConnected) {
+              updateData(row.id, {order: index}, state.currentType);
+            }
+          });
+          
+          render();
+        }
+      }
+    });
+  });
 }
 
 function updateBulkEditBar() {
@@ -2722,7 +2855,7 @@ function renderFinanceTable(type) {
   
   tbody.innerHTML = '';
   
-  rows.forEach(row => {
+  rows.forEach((row, rowIndex) => {
     const profitClass = (row.profit || 0) >= 0 ? 'positive' : 'negative';
     
     // 작업기간에서 종료일 추출
@@ -2750,10 +2883,17 @@ function renderFinanceTable(type) {
     const tr = document.createElement('tr');
     if (rowClass) tr.className = rowClass;
     
+    // 드래그 가능 설정
+    tr.draggable = true;
+    tr.dataset.rowId = row.id;
+    tr.dataset.rowIndex = rowIndex;
+    tr.dataset.type = type;
+    
     // 순이익율 계산
     const profitRate = (row.revenue && row.revenue !== 0) ? ((row.profit || 0) / row.revenue * 100).toFixed(1) : '0.0';
     
     tr.innerHTML = `
+      <td class="center" style="width:40px"><span class="drag-handle">☰</span></td>
       <td class="center"><input type="checkbox" class="fin-check" data-type="${type}" data-id="${row.id}"></td>
       <td class="fin-cell center" data-type="${type}" data-id="${row.id}" data-field="month">${row.month || ''}</td>
       <td class="fin-cell center" data-type="${type}" data-id="${row.id}" data-field="manager">${row.manager || ''}</td>
@@ -2765,6 +2905,11 @@ function renderFinanceTable(type) {
       <td class="fin-cell num cost-cell" data-type="${type}" data-id="${row.id}" data-field="cost">${fmtMoney(row.cost || 0)}</td>
       <td class="fin-cell num profit-cell ${profitClass}" data-type="${type}" data-id="${row.id}" data-field="profit">${fmtMoney(row.profit || 0)}</td>
       <td class="fin-cell num rate-cell" data-type="${type}" data-id="${row.id}" data-field="profitRate">${profitRate}%</td>
+      <td class="center"><select class="contract-status-select" data-type="${type}" data-id="${row.id}" style="padding:8px 12px; font-size:13px; border-radius:8px; border:2px solid var(--border); background:var(--card); color:var(--text); cursor:pointer">
+        <option value="진행중" ${(row.contractStatus || '진행중') === '진행중' ? 'selected' : ''}>진행중</option>
+        <option value="대기중" ${(row.contractStatus || '') === '대기중' ? 'selected' : ''}>대기중</option>
+        <option value="계약종료" ${(row.contractStatus || '') === '계약종료' ? 'selected' : ''}>계약종료</option>
+      </select></td>
       <td class="fin-cell nowrap" data-type="${type}" data-id="${row.id}" data-field="memo">${row.memo || ''}</td>
       <td class="fin-cell center" data-type="${type}" data-id="${row.id}" data-field="tax">${row.tax || '미발행'}</td>
     `;
@@ -2799,8 +2944,104 @@ function renderFinanceTable(type) {
     });
   });
   
+  // 계약 상태 select 이벤트 리스너
+  tbody.querySelectorAll('.contract-status-select').forEach(select => {
+    select.addEventListener('change', (e) => {
+      const type = select.dataset.type;
+      const id = select.dataset.id;
+      const newStatus = e.target.value;
+      
+      const row = state.financeData[type].find(r => r.id === id);
+      if (row) {
+        row.contractStatus = newStatus;
+        if (state.useFirebase && state.isFirebaseConnected) {
+          saveFinanceData(row, type);
+        }
+      }
+    });
+  });
+  
+  // 드래그 앤 드롭 이벤트 핸들러 추가
+  setupFinanceDragAndDrop(type);
+  
   // 페이지네이션 렌더링
   renderFinancePagination(type, allRows.length);
+}
+
+function setupFinanceDragAndDrop(type) {
+  const tbody = $(`#fin${type.charAt(0).toUpperCase() + type.slice(1)}`);
+  if (!tbody) return;
+  
+  let draggedRow = null;
+  let draggedData = null;
+  
+  tbody.querySelectorAll('tr[draggable="true"]').forEach(tr => {
+    tr.addEventListener('dragstart', (e) => {
+      draggedRow = tr;
+      const rowType = tr.dataset.type;
+      const rowId = tr.dataset.rowId;
+      draggedData = state.financeData[rowType].find(r => r.id === rowId);
+      tr.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    
+    tr.addEventListener('dragend', (e) => {
+      tr.classList.remove('dragging');
+      tbody.querySelectorAll('tr').forEach(row => row.classList.remove('drag-over'));
+    });
+    
+    tr.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      
+      const targetRow = e.currentTarget;
+      if (draggedRow && targetRow !== draggedRow) {
+        tbody.querySelectorAll('tr').forEach(row => row.classList.remove('drag-over'));
+        targetRow.classList.add('drag-over');
+      }
+    });
+    
+    tr.addEventListener('dragleave', (e) => {
+      const targetRow = e.currentTarget;
+      targetRow.classList.remove('drag-over');
+    });
+    
+    tr.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const targetRow = e.currentTarget;
+      targetRow.classList.remove('drag-over');
+      
+      if (draggedRow && targetRow !== draggedRow && draggedData) {
+        const targetType = targetRow.dataset.type;
+        const targetId = targetRow.dataset.rowId;
+        const targetData = state.financeData[targetType].find(r => r.id === targetId);
+        
+        if (targetData && targetType === type) {
+          // 배열에서 원본 위치 찾기
+          const rows = state.financeData[type];
+          const draggedIndex = rows.findIndex(r => r.id === draggedData.id);
+          const targetIndex = rows.findIndex(r => r.id === targetData.id);
+          
+          // 배열 순서 변경
+          rows.splice(draggedIndex, 1);
+          const newTargetIndex = rows.findIndex(r => r.id === targetData.id);
+          rows.splice(newTargetIndex, 0, draggedData);
+          
+          // Firebase에 순서 정보 저장
+          rows.forEach((row, index) => {
+            row.order = index;
+            if (state.useFirebase && state.isFirebaseConnected) {
+              saveFinanceData(row, type);
+            }
+          });
+          
+          renderFinance();
+        }
+      }
+    });
+  });
 }
 
 function getFilteredFinanceRows(type) {
@@ -2811,7 +3052,8 @@ function getFilteredFinanceRows(type) {
     filterType: $('#finFilterType')?.value || '',
     filterYear: $('#finFilterYear')?.value || '',
     selectedMonth: $('#financeMonth')?.value || '',
-    sortOrder: $('#finSortOrder')?.value || ''
+    contractStatus: $('#contractStatus')?.value || '',
+    sortOrder: $('#finSortOrder')?.value || 'order_asc'
   };
   
   let filtered = rows.slice();
@@ -2832,6 +3074,10 @@ function getFilteredFinanceRows(type) {
     filtered = filtered.filter(r => (r.month || '').startsWith(filters.filterYear));
   }
   
+  if (filters.contractStatus) {
+    filtered = filtered.filter(r => (r.contractStatus || '진행중') === filters.contractStatus);
+  }
+  
   if (filters.selectedMonth) {
     const monthNum = filters.selectedMonth.replace('월', '');
     filtered = filtered.filter(r => {
@@ -2841,7 +3087,15 @@ function getFilteredFinanceRows(type) {
     });
   }
   
-  if (filters.sortOrder === 'created_desc') {
+  // 정렬
+  if (filters.sortOrder === 'order_asc') {
+    // 등록순 (order 필드 기준)
+    filtered.sort((a, b) => {
+      const orderA = typeof a.order === 'number' ? a.order : 9999;
+      const orderB = typeof b.order === 'number' ? b.order : 9999;
+      return orderA - orderB;
+    });
+  } else if (filters.sortOrder === 'created_desc') {
     filtered.sort((a, b) => (b.month || '').localeCompare(a.month || ''));
   } else if (filters.sortOrder === 'created_asc') {
     filtered.sort((a, b) => (a.month || '').localeCompare(b.month || ''));
@@ -3076,6 +3330,12 @@ function setupFinanceEventListeners() {
     financeMonth.addEventListener('change', handleFinFilterChange);
   }
   
+  const contractStatus = $('#contractStatus');
+  if (contractStatus) {
+    contractStatus.removeEventListener('change', handleFinFilterChange);
+    contractStatus.addEventListener('change', handleFinFilterChange);
+  }
+  
   const finSortOrder = $('#finSortOrder');
   if (finSortOrder) {
     finSortOrder.removeEventListener('change', handleFinFilterChange);
@@ -3131,6 +3391,7 @@ function handleFinReset() {
   const finFilterType = $('#finFilterType');
   const finFilterYear = $('#finFilterYear');
   const financeMonth = $('#financeMonth');
+  const contractStatus = $('#contractStatus');
   const finSortOrder = $('#finSortOrder');
   
   if (finSearchClient) finSearchClient.value = '';
@@ -3138,6 +3399,7 @@ function handleFinReset() {
   if (finFilterType) finFilterType.value = '';
   if (finFilterYear) finFilterYear.value = '';
   if (financeMonth) financeMonth.value = '';
+  if (contractStatus) contractStatus.value = '';
   if (finSortOrder) finSortOrder.value = '';
   
   if (state.currentType === 'finance') renderFinance();
@@ -3302,6 +3564,113 @@ function openFinBulkEditModal() {
   });
 }
 
+function openDateRangeModal(inputElement) {
+  // 기존 값 파싱
+  let startDate = '';
+  let endDate = '';
+  const currentValue = inputElement.value;
+  if (currentValue && currentValue.includes('~')) {
+    const parts = currentValue.split('~');
+    startDate = parts[0]?.trim() || '';
+    endDate = parts[1]?.trim() || '';
+  }
+  
+  // 기존 모달이 있으면 제거
+  const existingModal = document.querySelector('.date-range-modal-back');
+  if (existingModal) {
+    document.body.removeChild(existingModal);
+  }
+  
+  // 모달 생성
+  const modalBack = document.createElement('div');
+  modalBack.className = 'date-range-modal-back';
+  
+  const modal = document.createElement('div');
+  modal.className = 'date-range-modal';
+  modal.innerHTML = `
+    <div class="date-range-modal-header">
+      <strong>📅 작업기간 설정</strong>
+      <button class="btn mini outline" id="closeDateModal">✕</button>
+    </div>
+    <div class="date-picker-grid">
+      <div class="date-picker-field">
+        <label>시작일</label>
+        <input type="date" id="modalStartDate" value="${startDate}">
+      </div>
+      <div class="date-picker-field">
+        <label>종료일</label>
+        <input type="date" id="modalEndDate" value="${endDate}">
+      </div>
+    </div>
+    <div class="date-picker-actions">
+      <button class="btn-cancel" id="cancelDateModal">취소</button>
+      <button class="btn-apply" id="applyDateModal">적용</button>
+    </div>
+  `;
+  
+  modalBack.appendChild(modal);
+  document.body.appendChild(modalBack);
+  
+  const startInput = modal.querySelector('#modalStartDate');
+  const endInput = modal.querySelector('#modalEndDate');
+  
+  const closeModal = () => {
+    if (document.body.contains(modalBack)) {
+      document.body.removeChild(modalBack);
+    }
+  };
+  
+  const applyDates = () => {
+    const start = startInput.value;
+    const end = endInput.value;
+    if (start && end) {
+      inputElement.value = `${start}~${end}`;
+    } else if (start) {
+      inputElement.value = start;
+    } else {
+      inputElement.value = '';
+    }
+    closeModal();
+  };
+  
+  // 이벤트 리스너
+  modal.querySelector('#applyDateModal').addEventListener('click', (e) => {
+    e.stopPropagation();
+    applyDates();
+  });
+  
+  modal.querySelector('#cancelDateModal').addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeModal();
+  });
+  
+  modal.querySelector('#closeDateModal').addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeModal();
+  });
+  
+  // 배경 클릭 시 닫기
+  modalBack.addEventListener('click', (e) => {
+    if (e.target === modalBack) {
+      closeModal();
+    }
+  });
+  
+  // ESC 키로 닫기
+  const handleEsc = (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+      document.removeEventListener('keydown', handleEsc);
+    }
+  };
+  document.addEventListener('keydown', handleEsc);
+  
+  // 모달 내부 클릭은 전파 중지
+  modal.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+}
+
 function openFinAddModal() {
   const modal = document.createElement('div');
   modal.className = 'modal-back active';
@@ -3363,7 +3732,7 @@ function openFinAddModal() {
         </div>
         <div>
           <label>작업기간</label>
-          <input type="text" id="finPeriod" placeholder="2025-01-01~2025-01-31">
+          <input type="text" id="finPeriod" placeholder="📅 클릭하여 날짜 선택" readonly style="cursor:pointer; background:var(--card2)">
         </div>
         <div>
           <label>작업비(매입)</label>
@@ -3421,6 +3790,14 @@ function openFinAddModal() {
   revenueInput?.addEventListener('input', autoCalculate);
   costInput?.addEventListener('input', autoCalculate);
   autoCalculate();
+  
+  // 작업기간 달력 선택기
+  const periodInput = $('#finPeriod');
+  if (periodInput) {
+    periodInput.addEventListener('click', () => {
+      openDateRangeModal(periodInput);
+    });
+  }
   
   const closeModal = () => {
     if (document.body.contains(modal)) document.body.removeChild(modal);
@@ -3515,6 +3892,116 @@ function startFinEdit(cell, type, id, field) {
     input = document.createElement('input');
     input.type = 'month';
     input.value = oldValue || '';
+  } else if (field === 'period') {
+    // 작업기간을 모달 달력 선택기로 표시
+    
+    // 기존 값 파싱
+    let startDate = '';
+    let endDate = '';
+    if (oldValue && oldValue.includes('~')) {
+      const parts = oldValue.split('~');
+      startDate = parts[0]?.trim() || '';
+      endDate = parts[1]?.trim() || '';
+    }
+    
+    // 기존 모달이 있으면 제거
+    const existingModal = document.querySelector('.date-range-modal-back');
+    if (existingModal) {
+      document.body.removeChild(existingModal);
+    }
+    
+    // 모달 생성
+    const modalBack = document.createElement('div');
+    modalBack.className = 'date-range-modal-back';
+    
+    const modal = document.createElement('div');
+    modal.className = 'date-range-modal';
+    modal.innerHTML = `
+      <div class="date-range-modal-header">
+        <strong>📅 작업기간 설정</strong>
+        <button class="btn mini outline" id="closeDateModal">✕</button>
+      </div>
+      <div class="date-picker-grid">
+        <div class="date-picker-field">
+          <label>시작일</label>
+          <input type="date" id="periodStartDate" value="${startDate}">
+        </div>
+        <div class="date-picker-field">
+          <label>종료일</label>
+          <input type="date" id="periodEndDate" value="${endDate}">
+        </div>
+      </div>
+      <div class="date-picker-actions">
+        <button class="btn-cancel" id="cancelDatePicker">취소</button>
+        <button class="btn-apply" id="applyDatePicker">적용</button>
+      </div>
+    `;
+    
+    modalBack.appendChild(modal);
+    document.body.appendChild(modalBack);
+    
+    const startInput = modal.querySelector('#periodStartDate');
+    const endInput = modal.querySelector('#periodEndDate');
+    
+    const closeModal = () => {
+      if (document.body.contains(modalBack)) {
+        document.body.removeChild(modalBack);
+      }
+      renderFinance();
+    };
+    
+    const commit = () => {
+      const start = startInput.value;
+      const end = endInput.value;
+      if (start && end) {
+        row[field] = `${start}~${end}`;
+      } else if (start) {
+        row[field] = start;
+      } else {
+        row[field] = '';
+      }
+      saveFinanceData(row, type);
+      closeModal();
+    };
+    
+    // 이벤트 리스너
+    modal.querySelector('#applyDatePicker').addEventListener('click', (e) => {
+      e.stopPropagation();
+      commit();
+    });
+    
+    modal.querySelector('#cancelDatePicker').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeModal();
+    });
+    
+    modal.querySelector('#closeDateModal').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeModal();
+    });
+    
+    // 배경 클릭 시 닫기
+    modalBack.addEventListener('click', (e) => {
+      if (e.target === modalBack) {
+        closeModal();
+      }
+    });
+    
+    // ESC 키로 닫기
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+        document.removeEventListener('keydown', handleEsc);
+      }
+    };
+    document.addEventListener('keydown', handleEsc);
+    
+    // 모달 내부 클릭은 전파 중지
+    modal.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+    
+    return;
   } else {
     input = document.createElement('input');
     input.type = isNumber ? 'number' : 'text';
