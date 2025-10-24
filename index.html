@@ -65,6 +65,12 @@
   .tab:hover{border-color:var(--primary-light); background:var(--card2); transform:translateY(-2px)}
   .tab.active{background:var(--primary); color:#fff; border-color:var(--primary); box-shadow:0 4px 12px rgba(99,102,241,.3)}
 
+  .place-subtabs{display:none; gap:8px; margin-left:12px}
+  .place-subtabs.show{display:flex}
+  .subtab{padding:10px 20px; background:var(--card2); border:2px solid var(--border); border-radius:10px; cursor:pointer; font-size:14px; font-weight:600; transition:all .3s; color:var(--muted)}
+  .subtab:hover{border-color:var(--primary-light); background:var(--card)}
+  .subtab.active{background:var(--primary-light); color:#fff; border-color:var(--primary-light); box-shadow:0 2px 8px rgba(99,102,241,.3)}
+
   .panel{background:var(--panel); border:1px solid var(--border); border-radius:20px; box-shadow:var(--shadow); overflow:hidden}
   .panel .h{padding:24px 32px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:linear-gradient(to right, rgba(99,102,241,.05), transparent)}
   .panel .h strong{font-size:20px; font-weight:700; display:flex; align-items:center; gap:8px}
@@ -322,6 +328,10 @@
 
   <div class="tabs">
     <div class="tab active" data-type="place">📍 플레이스 작업</div>
+    <div class="place-subtabs" id="placeSubtabs" style="display:flex; gap:8px; margin-left:12px">
+      <div class="subtab active" data-subtype="reward">🎁 리워드</div>
+      <div class="subtab" data-subtype="distribution">📦 배포</div>
+    </div>
     <div class="tab" data-type="blog">📝 블로그 작업</div>
     <div class="tab" data-type="project">🎯 프로젝트</div>
     <div class="tab" data-type="finance">💰 매출/매입</div>
@@ -447,6 +457,10 @@
               <option value="order_asc">📝 등록순</option>
               <option value="created_desc">📆 등록일 ↓</option>
               <option value="created_asc">📆 등록일 ↑</option>
+              <option value="startdate_desc">🗓️ 시작일 ↓</option>
+              <option value="startdate_asc">🗓️ 시작일 ↑</option>
+              <option value="enddate_desc">📅 종료일 ↓</option>
+              <option value="enddate_asc">📅 종료일 ↑</option>
               <option value="revenue_desc">💰 매출 ↓</option>
               <option value="revenue_asc">💰 매출 ↑</option>
               <option value="profit_desc">💵 이익 ↓</option>
@@ -682,6 +696,7 @@ const MANAGERS = ['전병황', '강태우', '오영은', '김하늬', '김우현
 
 const state = {
   currentType: 'place',
+  placeSubType: 'reward',
   rows: {place: [], blog: [], project: []},
   financeData: {},
   filters: {},
@@ -704,9 +719,9 @@ const CONFIGS = {
   place: {
     name: '플레이스 작업',
     path: 'place',
-    fields: [
+    rewardFields: [
       {key:'manager', label:'담당자', type:'select', options:['전병황', '강태우', '오영은', '김하늬', '김우현', '공민경']},
-      {key:'product', label:'상품', type:'text'},
+      {key:'product', label:'상품', type:'select', options:['멘토스','호올스','말차','신규','없음']},
       {key:'category', label:'구분', type:'select', options:['트래픽','저장','길찾기','영수증']},
       {key:'client', label:'업체명', type:'text', required:true},
       {key:'mid', label:'Mid', type:'url'},
@@ -720,7 +735,28 @@ const CONFIGS = {
       {key:'cost', label:'작업비', type:'computed'},
       {key:'tax', label:'세금', type:'select', options:['발행','미발행']},
       {key:'note', label:'비고', type:'text'}
-    ]
+    ],
+    distributionFields: [
+      {key:'manager', label:'담당자', type:'select', options:['전병황', '강태우', '오영은', '김하늬', '김우현', '공민경']},
+      {key:'product', label:'상품', type:'text'},
+      {key:'client', label:'업체명', type:'text', required:true},
+      {key:'url', label:'URL', type:'url'},
+      {key:'realName', label:'실/비', type:'select', options:['실명','비실명']},
+      {key:'category', label:'구분', type:'select', options:['정보성','후기성']},
+      {key:'totalQty', label:'총수량', type:'number'},
+      {key:'dailyPublish', label:'일 발행', type:'number'},
+      {key:'unitPrice', label:'단가', type:'number'},
+      {key:'keywords', label:'키워드', type:'text'},
+      {key:'startDate', label:'시작일', type:'date', required:true},
+      {key:'endDate', label:'종료일', type:'date'},
+      {key:'cost', label:'작업비', type:'computed'},
+      {key:'tax', label:'세금', type:'select', options:['발행','미발행']},
+      {key:'note', label:'비고', type:'text'}
+    ],
+    get fields() {
+      // 현재 서브타입에 따라 필드 반환
+      return state.placeSubType === 'distribution' ? this.distributionFields : this.rewardFields;
+    }
   },
   blog: {
     name: '블로그 작업',
@@ -944,11 +980,20 @@ function mk(p, config) {
   const row = {id, createdAt, ...p};
   
   if (config.path === 'place') {
-    if (row.units !== undefined && row.days !== undefined) {
-      row.totalQty = (row.units||0) * (row.days||0);
-    }
-    if (row.totalQty !== undefined && row.unitPrice !== undefined) {
-      row.cost = (row.totalQty||0) * (row.unitPrice||0);
+    // 리워드인 경우에만 계산 (기본값은 reward)
+    const subType = row.subType || 'reward';
+    if (subType === 'reward') {
+      if (row.units !== undefined && row.days !== undefined) {
+        row.totalQty = (row.units||0) * (row.days||0);
+      }
+      if (row.totalQty !== undefined && row.unitPrice !== undefined) {
+        row.cost = (row.totalQty||0) * (row.unitPrice||0);
+      }
+    } else if (subType === 'distribution') {
+      // 배포는 총수량 * 단가로 계산
+      if (row.totalQty !== undefined && row.unitPrice !== undefined) {
+        row.cost = (row.totalQty||0) * (row.unitPrice||0);
+      }
     }
   } else if (config.path === 'blog') {
     if (row.totalQty !== undefined && row.unitPrice !== undefined) {
@@ -1022,6 +1067,17 @@ function loadData(key) {
 }
 
 function switchType(type) {
+  const placeSubtabs = $('#placeSubtabs');
+  
+  // 플레이스 탭 토글 처리: 이미 활성화되어 있고 서브탭이 표시 중일 때
+  if (type === 'place' && state.currentType === 'place') {
+    if (placeSubtabs && placeSubtabs.classList.contains('show')) {
+      // 서브탭 숨김
+      placeSubtabs.classList.remove('show');
+      return;
+    }
+  }
+  
   state.currentType = type;
   state.selected.clear();
   state.pagination.currentPage = 1;
@@ -1029,6 +1085,15 @@ function switchType(type) {
   $$('.tab').forEach(t => t.classList.remove('active'));
   const activeTab = $(`.tab[data-type="${type}"]`);
   if (activeTab) activeTab.classList.add('active');
+  
+  // 플레이스 서브탭 표시/숨김
+  if (placeSubtabs) {
+    if (type === 'place') {
+      placeSubtabs.classList.add('show');
+    } else {
+      placeSubtabs.classList.remove('show');
+    }
+  }
   
   if (type === 'finance') {
     const kpisPanel = $('#kpisPanel');
@@ -1051,136 +1116,6 @@ function switchType(type) {
     $('#kpisSummaryPanel').style.display = 'block';
     $('#financePanel').style.display = 'none';
     
-  // Finance 탭 필터 이벤트
-  const finSearchClient = $('#finSearchClient');
-  if (finSearchClient) {
-    finSearchClient.addEventListener('input', () => {
-      if (state.currentType === 'finance') renderFinance();
-    });
-  }
-  
-  const finFilterManager = $('#finFilterManager');
-  if (finFilterManager) {
-    finFilterManager.addEventListener('change', () => {
-      if (state.currentType === 'finance') renderFinance();
-    });
-  }
-  
-  const finFilterType = $('#finFilterType');
-  if (finFilterType) {
-    finFilterType.addEventListener('change', () => {
-      if (state.currentType === 'finance') renderFinance();
-    });
-  }
-  
-  const finFilterYear = $('#finFilterYear');
-  if (finFilterYear) {
-    finFilterYear.addEventListener('change', () => {
-      if (state.currentType === 'finance') renderFinance();
-    });
-  }
-  
-  const financeMonth = $('#financeMonth');
-  if (financeMonth) {
-    financeMonth.addEventListener('change', () => {
-      if (state.currentType === 'finance') renderFinance();
-    });
-  }
-  
-  const finSortOrder = $('#finSortOrder');
-  if (finSortOrder) {
-    finSortOrder.addEventListener('change', () => {
-      if (state.currentType === 'finance') renderFinance();
-    });
-  }
-  
-  const finResetBtn = $('#finResetBtn');
-  if (finResetBtn) {
-    finResetBtn.addEventListener('click', () => {
-      if (finSearchClient) finSearchClient.value = '';
-      if (finFilterManager) finFilterManager.value = '';
-      if (finFilterType) finFilterType.value = '';
-      if (finFilterYear) finFilterYear.value = '';
-      if (financeMonth) financeMonth.value = '';
-      if (finSortOrder) finSortOrder.value = '';
-      if (state.currentType === 'finance') renderFinance();
-    });
-  }
-  
-  const openFinAddModalBtn = $('#openFinAddModalBtn');
-  if (openFinAddModalBtn) {
-    openFinAddModalBtn.addEventListener('click', () => {
-      openFinAddModal();
-    });
-  }
-  
-  const removeFinSelectedBtn = $('#removeFinSelectedBtn');
-  if (removeFinSelectedBtn) {
-    removeFinSelectedBtn.addEventListener('click', () => {
-      if (!state.finSelected.size) return alert('선택하세요');
-      if (confirm(`${state.finSelected.size}건 삭제?`)) {
-        state.finSelected.forEach(key => {
-          const parts = key.split('_');
-          const type = parts[0];
-          const id = parts.slice(1).join('_');
-          
-          state.financeData[type] = state.financeData[type].filter(r => r.id !== id);
-          deleteFinanceData(id, type);
-        });
-        
-        state.finSelected.clear();
-        renderFinance();
-      }
-    });
-  }
-  
-  const cloneFinSelectedBtn = $('#cloneFinSelectedBtn');
-  if (cloneFinSelectedBtn) {
-    // 기존 이벤트 리스너 제거 (중복 방지)
-    cloneFinSelectedBtn.replaceWith(cloneFinSelectedBtn.cloneNode(true));
-    const newCloneBtn = $('#cloneFinSelectedBtn');
-    
-    newCloneBtn.addEventListener('click', () => {
-      if (!state.finSelected.size) return alert('복제할 항목을 선택하세요');
-      
-      if (!confirm(`선택한 ${state.finSelected.size}개 항목을 복제하시겠습니까?`)) return;
-      
-      let clonedCount = 0;
-      state.finSelected.forEach(key => {
-        const parts = key.split('_');
-        const type = parts[0];
-        const id = parts.slice(1).join('_');
-        
-        const original = state.financeData[type].find(r => r.id === id);
-        if (original) {
-          const cloned = { ...original, id: Date.now() + '_' + Math.random().toString(36).slice(2) };
-          cloned.month = cloned.month || '';
-          state.financeData[type].unshift(cloned);
-          saveFinanceData(cloned, type);
-          clonedCount++;
-        }
-      });
-      
-      if (clonedCount > 0) {
-        alert(`${clonedCount}건이 복제되었습니다.`);
-        state.finSelected.clear();
-        renderFinance();
-      }
-    });
-  }
-  
-  const finBulkEditBtn = $('#finBulkEditBtn');
-  if (finBulkEditBtn) {
-    // 기존 이벤트 리스너 제거 (중복 방지)
-    finBulkEditBtn.replaceWith(finBulkEditBtn.cloneNode(true));
-    const newBulkBtn = $('#finBulkEditBtn');
-    
-    newBulkBtn.addEventListener('click', () => {
-      if (!state.finSelected.size) return alert('선택하세요');
-      openFinBulkEditModal();
-    });
-  }
-  
     render();
   }
 }
@@ -1188,6 +1123,11 @@ function switchType(type) {
 function applyFilters(rows) {
   const f = state.filters[state.currentType] || {};
   let arr = rows.slice();
+  
+  // 플레이스 서브타입 필터링
+  if (state.currentType === 'place' && state.placeSubType) {
+    arr = arr.filter(r => (r.subType || 'reward') === state.placeSubType);
+  }
   
   if (f.q) {
     const q = f.q.toLowerCase();
@@ -1844,28 +1784,40 @@ function renderTable() {
         }
       } else if (f.key === 'note') {
         const noteValue = row[f.key] || '';
-        const wrapper = document.createElement('div');
-        wrapper.style.display = 'flex';
-        wrapper.style.gap = '8px';
-        wrapper.style.alignItems = 'center';
         
-        const noteSpan = document.createElement('span');
-        noteSpan.textContent = noteValue.length > 20 ? noteValue.substring(0, 20) + '...' : (noteValue || '');
-        noteSpan.style.flex = '1';
-        noteSpan.style.cursor = 'pointer';
-        noteSpan.addEventListener('click', () => startEdit(td, row, f));
+        // 배포(distribution)인지 확인
+        const isDistribution = state.currentType === 'place' && state.placeSubType === 'distribution';
         
-        const memoBtn = document.createElement('button');
-        memoBtn.className = 'btn mini';
-        memoBtn.textContent = '📝 메모';
-        memoBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          openMemoModal(row, state.currentType);
-        });
-        
-        wrapper.appendChild(noteSpan);
-        wrapper.appendChild(memoBtn);
-        td.appendChild(wrapper);
+        if (isDistribution) {
+          // 배포는 메모 버튼 없이 텍스트만 표시
+          td.textContent = noteValue;
+          td.style.cursor = 'pointer';
+          td.addEventListener('click', () => startEdit(td, row, f));
+        } else {
+          // 다른 작업은 메모 버튼 포함
+          const wrapper = document.createElement('div');
+          wrapper.style.display = 'flex';
+          wrapper.style.gap = '8px';
+          wrapper.style.alignItems = 'center';
+          
+          const noteSpan = document.createElement('span');
+          noteSpan.textContent = noteValue.length > 20 ? noteValue.substring(0, 20) + '...' : (noteValue || '');
+          noteSpan.style.flex = '1';
+          noteSpan.style.cursor = 'pointer';
+          noteSpan.addEventListener('click', () => startEdit(td, row, f));
+          
+          const memoBtn = document.createElement('button');
+          memoBtn.className = 'btn mini';
+          memoBtn.textContent = '📝 메모';
+          memoBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openMemoModal(row, state.currentType);
+          });
+          
+          wrapper.appendChild(noteSpan);
+          wrapper.appendChild(memoBtn);
+          td.appendChild(wrapper);
+        }
       } else if (f.key === 'endDate') {
         const dateText = row[f.key] || '';
         const badge = getDDayBadge(row.endDate);
@@ -3045,10 +2997,16 @@ function setupFinanceDragAndDrop(type) {
           const draggedIndex = rows.findIndex(r => r.id === draggedData.id);
           const targetIndex = rows.findIndex(r => r.id === targetData.id);
           
-          // 배열 순서 변경
-          rows.splice(draggedIndex, 1);
-          const newTargetIndex = rows.findIndex(r => r.id === targetData.id);
-          rows.splice(newTargetIndex, 0, draggedData);
+          if (draggedIndex === -1 || targetIndex === -1) return;
+          
+          // 배열 순서 변경 - 올바른 방법
+          // 1. 드래그된 항목 제거
+          const [removed] = rows.splice(draggedIndex, 1);
+          
+          // 2. 타겟 위치에 삽입
+          // draggedIndex가 targetIndex보다 작으면, 제거 후 targetIndex가 1 감소함
+          const insertIndex = draggedIndex < targetIndex ? targetIndex : targetIndex;
+          rows.splice(insertIndex, 0, removed);
           
           // Firebase에 순서 정보 저장
           rows.forEach((row, index) => {
@@ -3120,6 +3078,38 @@ function getFilteredFinanceRows(type) {
     filtered.sort((a, b) => (b.month || '').localeCompare(a.month || ''));
   } else if (filters.sortOrder === 'created_asc') {
     filtered.sort((a, b) => (a.month || '').localeCompare(b.month || ''));
+  } else if (filters.sortOrder === 'startdate_desc') {
+    filtered.sort((a, b) => {
+      const getStartDate = (row) => {
+        if (!row.period || !row.period.includes('~')) return '';
+        return row.period.split('~')[0]?.trim() || '';
+      };
+      return (getStartDate(b) || '').localeCompare(getStartDate(a) || '');
+    });
+  } else if (filters.sortOrder === 'startdate_asc') {
+    filtered.sort((a, b) => {
+      const getStartDate = (row) => {
+        if (!row.period || !row.period.includes('~')) return '';
+        return row.period.split('~')[0]?.trim() || '';
+      };
+      return (getStartDate(a) || '').localeCompare(getStartDate(b) || '');
+    });
+  } else if (filters.sortOrder === 'enddate_desc') {
+    filtered.sort((a, b) => {
+      const getEndDate = (row) => {
+        if (!row.period || !row.period.includes('~')) return '';
+        return row.period.split('~')[1]?.trim() || '';
+      };
+      return (getEndDate(b) || '').localeCompare(getEndDate(a) || '');
+    });
+  } else if (filters.sortOrder === 'enddate_asc') {
+    filtered.sort((a, b) => {
+      const getEndDate = (row) => {
+        if (!row.period || !row.period.includes('~')) return '';
+        return row.period.split('~')[1]?.trim() || '';
+      };
+      return (getEndDate(a) || '').localeCompare(getEndDate(b) || '');
+    });
   } else if (filters.sortOrder === 'revenue_desc') {
     filtered.sort((a, b) => (b.revenue || 0) - (a.revenue || 0));
   } else if (filters.sortOrder === 'revenue_asc') {
@@ -4195,7 +4185,7 @@ function openAddModal() {
   
   let html = '';
   config.fields.forEach(f => {
-    if (f.type === 'computed') return;
+    if (f.type === 'computed' || f.type === 'hidden') return;
     const full = ['client', 'keywords', 'note'].includes(f.key) ? ' style="grid-column:1/-1"' : '';
     const req = f.required ? 'required' : '';
     
@@ -4240,9 +4230,19 @@ function openAddModal() {
     const data = {};
     config.fields.forEach(f => {
       if (f.type === 'computed') return;
+      if (f.type === 'hidden') {
+        // hidden 필드는 defaultValue 사용
+        data[f.key] = f.defaultValue;
+        return;
+      }
       const el = $(`#a${f.key}`);
       if (el) data[f.key] = f.type === 'number' ? parseNum(el.value) : el.value;
     });
+    
+    // place 타입일 때 현재 서브타입 설정
+    if (state.currentType === 'place') {
+      data.subType = state.placeSubType;
+    }
     
     const newRow = mk(data, config);
     state.rows[state.currentType].unshift(newRow);
@@ -4255,6 +4255,20 @@ function openAddModal() {
 function closeAddModal() {
   const modalBack = $('#addModalBack');
   if(modalBack) modalBack.classList.remove('active');
+}
+
+
+function switchSubType(subType) {
+  state.placeSubType = subType;
+  state.selected.clear();
+  state.pagination.currentPage = 1;
+  
+  // 서브탭 활성화 상태 변경
+  $$('.subtab').forEach(t => t.classList.remove('active'));
+  const activeSubtab = $(`.subtab[data-subtype="${subType}"]`);
+  if (activeSubtab) activeSubtab.classList.add('active');
+  
+  render();
 }
 
 function render() {
@@ -4304,6 +4318,19 @@ function initApp() {
       switchType(tab.dataset.type);
     });
   });
+  
+  // 서브탭 이벤트 바인딩
+  $$('.subtab').forEach(subtab => {
+    subtab.addEventListener('click', () => {
+      switchSubType(subtab.dataset.subtype);
+    });
+  });
+  
+  // 초기 로드 시 서브탭은 숨김 상태로 시작
+  const placeSubtabs = $('#placeSubtabs');
+  if (placeSubtabs) {
+    placeSubtabs.classList.remove('show');
+  }
   
   const removeBtn = $('#removeSelectedBtn');
   if(removeBtn) {
@@ -4387,6 +4414,138 @@ function initApp() {
       state.pagination.perPage = parseInt(e.target.value);
       state.pagination.currentPage = 1;
       renderTable();
+    });
+  }
+  
+  // Finance 탭 이벤트 리스너 초기화
+  const finSearchClient = $('#finSearchClient');
+  if (finSearchClient) {
+    finSearchClient.addEventListener('input', () => {
+      if (state.currentType === 'finance') renderFinance();
+    });
+  }
+  
+  const finFilterManager = $('#finFilterManager');
+  if (finFilterManager) {
+    finFilterManager.addEventListener('change', () => {
+      if (state.currentType === 'finance') renderFinance();
+    });
+  }
+  
+  const finFilterType = $('#finFilterType');
+  if (finFilterType) {
+    finFilterType.addEventListener('change', () => {
+      if (state.currentType === 'finance') renderFinance();
+    });
+  }
+  
+  const finFilterYear = $('#finFilterYear');
+  if (finFilterYear) {
+    finFilterYear.addEventListener('change', () => {
+      if (state.currentType === 'finance') renderFinance();
+    });
+  }
+  
+  const financeMonth = $('#financeMonth');
+  if (financeMonth) {
+    financeMonth.addEventListener('change', () => {
+      if (state.currentType === 'finance') renderFinance();
+    });
+  }
+  
+  const contractStatus = $('#contractStatus');
+  if (contractStatus) {
+    contractStatus.addEventListener('change', () => {
+      if (state.currentType === 'finance') renderFinance();
+    });
+  }
+  
+  const finSortOrder = $('#finSortOrder');
+  if (finSortOrder) {
+    finSortOrder.addEventListener('change', () => {
+      if (state.currentType === 'finance') renderFinance();
+    });
+  }
+  
+  const finResetBtn = $('#finResetBtn');
+  if (finResetBtn) {
+    finResetBtn.addEventListener('click', () => {
+      if (finSearchClient) finSearchClient.value = '';
+      if (finFilterManager) finFilterManager.value = '';
+      if (finFilterType) finFilterType.value = '';
+      if (finFilterYear) finFilterYear.value = '';
+      if (financeMonth) financeMonth.value = '';
+      if (contractStatus) contractStatus.value = '';
+      if (finSortOrder) finSortOrder.value = '';
+      if (state.currentType === 'finance') renderFinance();
+    });
+  }
+  
+  const openFinAddModalBtn = $('#openFinAddModalBtn');
+  if (openFinAddModalBtn) {
+    openFinAddModalBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openFinAddModal();
+    });
+  }
+  
+  const removeFinSelectedBtn = $('#removeFinSelectedBtn');
+  if (removeFinSelectedBtn) {
+    removeFinSelectedBtn.addEventListener('click', () => {
+      if (!state.finSelected.size) return alert('선택하세요');
+      if (confirm(`${state.finSelected.size}건 삭제?`)) {
+        state.finSelected.forEach(key => {
+          const parts = key.split('_');
+          const type = parts[0];
+          const id = parts.slice(1).join('_');
+          
+          state.financeData[type] = state.financeData[type].filter(r => r.id !== id);
+          deleteFinanceData(id, type);
+        });
+        
+        state.finSelected.clear();
+        renderFinance();
+      }
+    });
+  }
+  
+  const cloneFinSelectedBtn = $('#cloneFinSelectedBtn');
+  if (cloneFinSelectedBtn) {
+    cloneFinSelectedBtn.addEventListener('click', () => {
+      if (!state.finSelected.size) return alert('복제할 항목을 선택하세요');
+      
+      if (!confirm(`선택한 ${state.finSelected.size}개 항목을 복제하시겠습니까?`)) return;
+      
+      let clonedCount = 0;
+      state.finSelected.forEach(key => {
+        const parts = key.split('_');
+        const type = parts[0];
+        const id = parts.slice(1).join('_');
+        
+        const original = state.financeData[type].find(r => r.id === id);
+        if (original) {
+          const cloned = { ...original, id: Date.now() + '_' + Math.random().toString(36).slice(2) };
+          cloned.month = cloned.month || '';
+          state.financeData[type].unshift(cloned);
+          saveFinanceData(cloned, type);
+          clonedCount++;
+        }
+      });
+      
+      if (clonedCount > 0) {
+        alert(`${clonedCount}건이 복제되었습니다.`);
+        state.finSelected.clear();
+        renderFinance();
+      }
+    });
+  }
+  
+  const finBulkEditBtn = $('#finBulkEditBtn');
+  if (finBulkEditBtn) {
+    finBulkEditBtn.addEventListener('click', () => {
+      if (!state.finSelected.size) return alert('선택하세요');
+      openFinBulkEditModal();
     });
   }
   
