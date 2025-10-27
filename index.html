@@ -3438,8 +3438,9 @@ function openFinBulkEditModal() {
           <label>세금</label>
           <select id="bulkTax">
             <option value="">변경 안 함</option>
-            <option value="미발행">미발행</option>
+            <option value="발행완료">발행완료</option>
             <option value="발행">발행</option>
+            <option value="미발행">미발행</option>
           </select>
         </div>
         <div>
@@ -3715,8 +3716,9 @@ function openFinAddModal() {
         <div>
           <label>세금</label>
           <select id="finTax">
-            <option value="미발행">미발행</option>
+            <option value="발행완료">발행완료</option>
             <option value="발행">발행</option>
+            <option value="미발행">미발행</option>
           </select>
         </div>
         <div style="grid-column: 1/-1">
@@ -3856,8 +3858,9 @@ function startFinEdit(cell, type, id, field) {
   } else if (field === 'tax') {
     input = document.createElement('select');
     input.innerHTML = `
-      <option value="미발행">미발행</option>
+      <option value="발행완료">발행완료</option>
       <option value="발행">발행</option>
+      <option value="미발행">미발행</option>
     `;
     input.value = oldValue || '미발행';
   } else if (field === 'month') {
