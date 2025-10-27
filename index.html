@@ -404,6 +404,7 @@
     <div class="h">
       <strong>💼 업체별 수익정리</strong>
       <div class="toolbar">
+        <button class="btn small outline" id="openFinSpecialNoteBtn" style="border-color:var(--primary); color:var(--primary)">📌 특이사항</button>
         <button class="btn small" id="openFinAddModalBtn">➕ 새 항목</button>
         <button class="btn success small" id="cloneFinSelectedBtn">📋 복제</button>
         <button class="btn danger small" id="removeFinSelectedBtn">🗑️ 선택 삭제</button>
@@ -4252,7 +4253,8 @@ function loadSpecialNotes() {
         place_reward: data.place_reward || '',
         place_distribution: data.place_distribution || '',
         blog: data.blog || '',
-        project: data.project || ''
+        project: data.project || '',
+        finance: data.finance || ''
       };
     }
   }).catch(e => {
@@ -4286,6 +4288,8 @@ function openSpecialNoteModal() {
     titleText += ' - 블로그 작업';
   } else if (state.currentType === 'project') {
     titleText += ' - 프로젝트';
+  } else if (state.currentType === 'finance') {
+    titleText += ' - 매출/매입';
   }
   title.textContent = titleText;
   
@@ -4612,6 +4616,14 @@ function initApp() {
   if (saveSpecialNoteBtn) {
     saveSpecialNoteBtn.addEventListener('click', () => {
       saveCurrentSpecialNote();
+    });
+  }
+  
+  // 매출/매입 특이사항 버튼 이벤트 리스너
+  const openFinSpecialNoteBtn = $('#openFinSpecialNoteBtn');
+  if (openFinSpecialNoteBtn) {
+    openFinSpecialNoteBtn.addEventListener('click', () => {
+      openSpecialNoteModal();
     });
   }
   
