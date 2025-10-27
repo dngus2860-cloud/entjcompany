@@ -5313,7 +5313,7 @@ if (document.readyState === 'loading') {
 </script>
 
 <!-- AI 챗봇 -->
-<button class="chatbot-fab" id="chatbotFab" onclick="if(typeof chatbot !== 'undefined') chatbot.toggle();">💬</button>
+<button class="chatbot-fab" id="chatbotFab">💬</button>
 
 <div class="chatbot-window" id="chatbotWindow">
   <div class="chatbot-header">
@@ -5348,16 +5348,21 @@ const chatbot = {
   init() {
     console.log('챗봇 초기화 시작...');
     const fab = $('#chatbotFab');
-    const window = $('#chatbotWindow');
+    const chatWindow = $('#chatbotWindow');
     const close = $('#chatbotClose');
     const send = $('#chatbotSend');
     const input = $('#chatbotInput');
     const messagesContainer = $('#chatbotMessages');
     
-    console.log('챗봇 요소:', {fab, window, close, send, input, messagesContainer});
+    console.log('챗봇 요소:', {fab, chatWindow, close, send, input, messagesContainer});
     
     if (!fab) {
       console.error('챗봇 FAB 버튼을 찾을 수 없습니다!');
+      return;
+    }
+    
+    if (!chatWindow) {
+      console.error('챗봇 창을 찾을 수 없습니다!');
       return;
     }
     
@@ -5412,23 +5417,45 @@ const chatbot = {
   },
   
   toggle() {
+    console.log('toggle() 호출됨, 현재 isOpen:', this.isOpen);
     this.isOpen = !this.isOpen;
     const fab = $('#chatbotFab');
-    const window = $('#chatbotWindow');
+    const chatWindow = $('#chatbotWindow');
+    
+    console.log('챗봇 창 요소:', chatWindow);
+    console.log('새로운 isOpen 상태:', this.isOpen);
     
     if (this.isOpen) {
-      window?.classList.add('active');
-      fab?.classList.add('active');
+      if (chatWindow) {
+        chatWindow.classList.add('active');
+        console.log('챗봇 창 열림 - active 클래스 추가됨');
+      }
+      if (fab) {
+        fab.classList.add('active');
+      }
     } else {
-      window?.classList.remove('active');
-      fab?.classList.remove('active');
+      if (chatWindow) {
+        chatWindow.classList.remove('active');
+        console.log('챗봇 창 닫힘 - active 클래스 제거됨');
+      }
+      if (fab) {
+        fab.classList.remove('active');
+      }
     }
   },
   
   close() {
+    console.log('close() 호출됨');
     this.isOpen = false;
-    $('#chatbotWindow')?.classList.remove('active');
-    $('#chatbotFab')?.classList.remove('active');
+    const fab = $('#chatbotFab');
+    const chatWindow = $('#chatbotWindow');
+    
+    if (chatWindow) {
+      chatWindow.classList.remove('active');
+    }
+    if (fab) {
+      fab.classList.remove('active');
+    }
   },
   
   async sendMessage() {
