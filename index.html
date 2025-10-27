@@ -350,6 +350,7 @@
       <strong id="listTitle">📋 작업 목록</strong>
       <div class="toolbar">
         <span class="muted" id="countInfo">0건</span>
+        <button class="btn small outline" id="openSpecialNoteBtn" style="border-color:var(--primary); color:var(--primary)">📌 특이사항</button>
         <button class="btn small success" id="openReportModalBtn">📱 리포트 문자</button>
         <button class="btn small" id="openAddModalBtn">➕ 새 항목</button>
         <button class="btn warning small" id="cloneSelectedBtn">📋 복제</button>
@@ -636,6 +637,25 @@
   </div>
 </div>
 
+<div class="modal-back" id="specialNoteModalBack">
+  <div class="modal" style="max-width:700px">
+    <div class="mh">
+      <strong id="specialNoteModalTitle">📌 특이사항</strong>
+      <button class="btn small outline" id="closeSpecialNoteModalBtn">✕ 닫기</button>
+    </div>
+    <div class="mb">
+      <div style="margin-bottom:16px">
+        <label style="display:block; font-size:14px; font-weight:600; color:var(--muted); margin-bottom:8px">특이사항 메모</label>
+        <textarea id="specialNoteTextarea" rows="10" style="width:100%; padding:14px 18px; border-radius:12px; border:2px solid var(--border); background:var(--card); color:var(--text); font-size:15px; font-weight:500; resize:vertical; font-family:inherit; line-height:1.6" placeholder="이 작업 목록에 대한 특이사항을 입력하세요..."></textarea>
+      </div>
+      <div style="display:flex; gap:12px; justify-content:flex-end">
+        <button class="btn outline" id="cancelSpecialNoteBtn">취소</button>
+        <button class="btn" id="saveSpecialNoteBtn">💾 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -699,6 +719,12 @@ const state = {
   placeSubType: 'reward',
   rows: {place: [], blog: [], project: []},
   financeData: {},
+  specialNotes: {
+    place_reward: '',
+    place_distribution: '',
+    blog: '',
+    project: ''
+  },
   filters: {},
   selected: new Set(),
   finSelected: new Set(),
@@ -721,7 +747,7 @@ const CONFIGS = {
     path: 'place',
     rewardFields: [
       {key:'manager', label:'담당자', type:'select', options:['전병황', '강태우', '오영은', '김하늬', '김우현', '공민경']},
-      {key:'product', label:'상품', type:'select', options:['멘토스','호올스','말차','신규','없음']},
+      {key:'product', label:'상품', type:'text'},
       {key:'category', label:'구분', type:'select', options:['트래픽','저장','길찾기','영수증']},
       {key:'client', label:'업체명', type:'text', required:true},
       {key:'mid', label:'Mid', type:'url'},
@@ -953,6 +979,9 @@ function initFirebase() {
         loadFinanceData(type);
       });
       
+      // Special Notes 로드
+      loadSpecialNotes();
+      
       db.ref('.info/connected').on('value', s => {
         state.isFirebaseConnected = s.val() === true;
         updateConnectionStatus(state.isFirebaseConnected ? 'connected' : 'disconnected');
@@ -1092,6 +1121,16 @@ function switchType(type) {
       placeSubtabs.classList.add('show');
     } else {
       placeSubtabs.classList.remove('show');
+    }
+  }
+  
+  // 특이사항 버튼 표시/숨김
+  const specialNoteBtn = $('#openSpecialNoteBtn');
+  if (specialNoteBtn) {
+    if (type === 'finance') {
+      specialNoteBtn.style.display = 'none';
+    } else {
+      specialNoteBtn.style.display = 'inline-block';
     }
   }
   
@@ -1515,8 +1554,9 @@ function renderFilters() {
         <label class="filter-label">💳 세금계산서</label>
         <select id="ftax">
           <option value="all" ${!f.tax||f.tax==='all'?'selected':''}>전체</option>
-          <option value="yes" ${f.tax==='yes'?'selected':''}>✓ 발행</option>
-          <option value="no" ${f.tax==='no'?'selected':''}>✗ 미발행</option>
+          <option value="completed" ${f.tax==='completed'?'selected':''}>발행완료</option>
+          <option value="yes" ${f.tax==='yes'?'selected':''}>발행</option>
+          <option value="no" ${f.tax==='no'?'selected':''}>미발행</option>
         </select>
       </div>
     `;
@@ -1685,7 +1725,7 @@ function renderTable() {
   const titleEl = $('#listTitle');
   if(titleEl) titleEl.textContent = config.name;
   
-  let h = '<tr><th class="center" style="width:40px">↕</th><th class="center"><input type="checkbox" id="chkAll"></th>';
+  let h = '<tr><th class="center"><input type="checkbox" id="chkAll"></th>';
   config.fields.forEach(f => h += `<th class="${f.type === 'number' || f.type === 'computed' ? 'num' : ''}">${f.label}</th>`);
   h += '</tr>';
   
@@ -1707,16 +1747,6 @@ function renderTable() {
     const rowClass = getRowClass(row.endDate);
     if (rowClass) tr.className = rowClass;
     
-    // 드래그 가능 설정
-    tr.draggable = true;
-    tr.dataset.rowId = row.id;
-    tr.dataset.rowIndex = rowIndex;
-    
-    // 드래그 핸들 추가
-    const tdHandle = document.createElement('td');
-    tdHandle.className = 'center';
-    tdHandle.innerHTML = '<span class="drag-handle">☰</span>';
-    tr.appendChild(tdHandle);
     
     const td0 = document.createElement('td');
     td0.className = 'center';
@@ -1785,11 +1815,11 @@ function renderTable() {
       } else if (f.key === 'note') {
         const noteValue = row[f.key] || '';
         
-        // 배포(distribution)인지 확인
-        const isDistribution = state.currentType === 'place' && state.placeSubType === 'distribution';
+        // 플레이스 작업인지 확인
+        const isPlace = state.currentType === 'place';
         
-        if (isDistribution) {
-          // 배포는 메모 버튼 없이 텍스트만 표시
+        if (isPlace) {
+          // 플레이스 작업은 메모 버튼 없이 텍스트만 표시
           td.textContent = noteValue;
           td.style.cursor = 'pointer';
           td.addEventListener('click', () => startEdit(td, row, f));
@@ -1906,83 +1936,8 @@ function renderTable() {
   });
   p.appendChild(next);
   
-  // 드래그 앤 드롭 이벤트 핸들러 추가
-  setupDragAndDrop();
 }
 
-function setupDragAndDrop() {
-  const tbody = $('#tbody');
-  if (!tbody) return;
-  
-  let draggedRow = null;
-  let draggedData = null;
-  
-  tbody.querySelectorAll('tr').forEach(tr => {
-    tr.addEventListener('dragstart', (e) => {
-      draggedRow = tr;
-      draggedData = state.rows[state.currentType].find(r => r.id === tr.dataset.rowId);
-      tr.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/html', tr.innerHTML);
-    });
-    
-    tr.addEventListener('dragend', (e) => {
-      tr.classList.remove('dragging');
-      tbody.querySelectorAll('tr').forEach(row => row.classList.remove('drag-over'));
-    });
-    
-    tr.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      
-      const targetRow = e.currentTarget;
-      if (draggedRow && targetRow !== draggedRow) {
-        tbody.querySelectorAll('tr').forEach(row => row.classList.remove('drag-over'));
-        targetRow.classList.add('drag-over');
-      }
-    });
-    
-    tr.addEventListener('dragleave', (e) => {
-      const targetRow = e.currentTarget;
-      targetRow.classList.remove('drag-over');
-    });
-    
-    tr.addEventListener('drop', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const targetRow = e.currentTarget;
-      targetRow.classList.remove('drag-over');
-      
-      if (draggedRow && targetRow !== draggedRow && draggedData) {
-        const targetId = targetRow.dataset.rowId;
-        const targetData = state.rows[state.currentType].find(r => r.id === targetId);
-        
-        if (targetData) {
-          // 배열에서 원본 위치 찾기
-          const rows = state.rows[state.currentType];
-          const draggedIndex = rows.findIndex(r => r.id === draggedData.id);
-          const targetIndex = rows.findIndex(r => r.id === targetData.id);
-          
-          // 배열 순서 변경
-          rows.splice(draggedIndex, 1);
-          const newTargetIndex = rows.findIndex(r => r.id === targetData.id);
-          rows.splice(newTargetIndex, 0, draggedData);
-          
-          // Firebase에 순서 정보 저장
-          rows.forEach((row, index) => {
-            row.order = index;
-            if (state.useFirebase && state.isFirebaseConnected) {
-              updateData(row.id, {order: index}, state.currentType);
-            }
-          });
-          
-          render();
-        }
-      }
-    });
-  });
-}
 
 function updateBulkEditBar() {
   const count = state.selected.size;
@@ -4276,6 +4231,85 @@ function render() {
   renderTable();
 }
 
+// Special Notes 관련 함수들
+function getSpecialNoteKey() {
+  if (state.currentType === 'place') {
+    return `place_${state.placeSubType}`;
+  }
+  return state.currentType;
+}
+
+function loadSpecialNotes() {
+  if (!state.useFirebase || !db) return;
+  
+  db.ref('specialNotes').once('value').then(snapshot => {
+    const data = snapshot.val();
+    if (data) {
+      state.specialNotes = {
+        place_reward: data.place_reward || '',
+        place_distribution: data.place_distribution || '',
+        blog: data.blog || '',
+        project: data.project || ''
+      };
+    }
+  }).catch(e => {
+    console.error('Special Notes 로드 실패:', e);
+  });
+}
+
+function saveSpecialNote(key, content) {
+  if (!state.useFirebase || !db) return;
+  
+  db.ref('specialNotes').child(key).set(content).catch(e => {
+    console.error('Special Note 저장 실패:', e);
+  });
+}
+
+function openSpecialNoteModal() {
+  const modalBack = $('#specialNoteModalBack');
+  const textarea = $('#specialNoteTextarea');
+  const title = $('#specialNoteModalTitle');
+  
+  if (!modalBack || !textarea || !title) return;
+  
+  const key = getSpecialNoteKey();
+  const currentNote = state.specialNotes[key] || '';
+  
+  // 모달 제목 설정
+  let titleText = '📌 특이사항';
+  if (state.currentType === 'place') {
+    titleText += ` - 플레이스 작업 (${state.placeSubType === 'reward' ? '리워드' : '배포'})`;
+  } else if (state.currentType === 'blog') {
+    titleText += ' - 블로그 작업';
+  } else if (state.currentType === 'project') {
+    titleText += ' - 프로젝트';
+  }
+  title.textContent = titleText;
+  
+  textarea.value = currentNote;
+  modalBack.classList.add('active');
+  textarea.focus();
+}
+
+function closeSpecialNoteModal() {
+  const modalBack = $('#specialNoteModalBack');
+  if (modalBack) modalBack.classList.remove('active');
+}
+
+function saveCurrentSpecialNote() {
+  const textarea = $('#specialNoteTextarea');
+  if (!textarea) return;
+  
+  const key = getSpecialNoteKey();
+  const content = textarea.value.trim();
+  
+  state.specialNotes[key] = content;
+  saveSpecialNote(key, content);
+  
+  closeSpecialNoteModal();
+  alert('특이사항이 저장되었습니다.');
+}
+
 function initApp() {
   console.log('Initializing app...');
   
@@ -4546,6 +4580,35 @@ function initApp() {
     finBulkEditBtn.addEventListener('click', () => {
       if (!state.finSelected.size) return alert('선택하세요');
       openFinBulkEditModal();
+    });
+  }
+  
+  // 특이사항 버튼 이벤트 리스너
+  const openSpecialNoteBtn = $('#openSpecialNoteBtn');
+  if (openSpecialNoteBtn) {
+    openSpecialNoteBtn.addEventListener('click', () => {
+      openSpecialNoteModal();
+    });
+  }
+  
+  const closeSpecialNoteModalBtn = $('#closeSpecialNoteModalBtn');
+  if (closeSpecialNoteModalBtn) {
+    closeSpecialNoteModalBtn.addEventListener('click', () => {
+      closeSpecialNoteModal();
+    });
+  }
+  
+  const cancelSpecialNoteBtn = $('#cancelSpecialNoteBtn');
+  if (cancelSpecialNoteBtn) {
+    cancelSpecialNoteBtn.addEventListener('click', () => {
+      closeSpecialNoteModal();
+    });
+  }
+  
+  const saveSpecialNoteBtn = $('#saveSpecialNoteBtn');
+  if (saveSpecialNoteBtn) {
+    saveSpecialNoteBtn.addEventListener('click', () => {
+      saveCurrentSpecialNote();
     });
   }
   
