@@ -55,6 +55,7 @@
   .btn.danger:hover{background:#dc2626}
   .btn.small{padding:10px 18px; font-size:14px}
   .btn.mini{padding:6px 12px; font-size:12px}
+  .btn.tiny{padding:4px 8px; font-size:11px}
   .btn.success{background:var(--green)}
   .btn.success:hover{background:#16a34a}
   .btn.warning{background:var(--amber)}
@@ -131,6 +132,28 @@
 
   .month-item{margin-bottom:10px; padding:10px 14px; background:var(--card2); border-radius:10px; border-left:3px solid var(--primary); cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .2s; font-size:14px}
   .month-item:hover{background:var(--card); transform:translateX(6px); box-shadow:0 2px 8px rgba(99,102,241,.15)}
+  
+  /* 공지사항 스타일 */
+  .notice-item{padding:20px; margin-bottom:12px; background:var(--card2); border-radius:12px; border:2px solid var(--border); cursor:pointer; transition:all .3s; position:relative}
+  .notice-item:hover{background:var(--card); border-color:var(--primary-light); transform:translateY(-2px); box-shadow:0 4px 12px rgba(99,102,241,.2)}
+  .notice-item.pinned{border-left:4px solid var(--red); background:linear-gradient(to right, rgba(239,68,68,.05), var(--card2))}
+  .notice-item.pinned:hover{background:linear-gradient(to right, rgba(239,68,68,.08), var(--card))}
+  .notice-header{display:flex; align-items:center; gap:10px; margin-bottom:12px}
+  .notice-badge{padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px}
+  .notice-badge.pinned{background:var(--red); color:white}
+  .notice-badge.normal{background:var(--chip); color:var(--primary-light); border:1px solid var(--border)}
+  .notice-title{font-size:16px; font-weight:700; color:var(--text); margin-bottom:10px; line-height:1.5}
+  .notice-meta{display:flex; align-items:center; gap:16px; font-size:13px; color:var(--muted)}
+  .notice-meta-item{display:flex; align-items:center; gap:6px}
+  .notice-empty{text-align:center; padding:60px 20px; color:var(--muted)}
+  .notice-empty-icon{font-size:48px; margin-bottom:16px; opacity:.3}
+  
+  .notice-detail{max-width:900px; margin:0 auto}
+  .notice-detail-header{margin-bottom:32px; padding-bottom:24px; border-bottom:2px solid var(--border)}
+  .notice-detail-title{font-size:26px; font-weight:800; color:var(--text); margin-bottom:16px; line-height:1.4}
+  .notice-detail-meta{display:flex; align-items:center; gap:20px; font-size:14px; color:var(--muted)}
+  .notice-detail-content{font-size:15px; line-height:1.8; color:var(--text); white-space:pre-wrap; padding:24px; background:var(--card2); border-radius:12px; border:2px solid var(--border)}
+  .notice-detail-actions{margin-top:32px; padding-top:24px; border-top:2px solid var(--border); display:flex; gap:12px; justify-content:flex-end}
   
   /* 드래그 앤 드롭 스타일 */
   .drag-handle{cursor:grab; font-size:18px; color:var(--muted); padding:0 8px; display:inline-flex; align-items:center; justify-content:center; transition:color .2s; user-select:none}
@@ -337,6 +360,26 @@
     <div class="tab" data-type="finance">💰 매출/매입</div>
   </div>
 
+  <!-- 공지사항 섹션 -->
+  <section class="panel" id="noticePanel">
+    <div class="h">
+      <strong>📢 공지사항</strong>
+      <button class="btn small" id="openNoticeModalBtn">✍️ 게시글 쓰기</button>
+    </div>
+    <div class="b">
+      <div id="noticeListView">
+        <div id="noticeList"></div>
+      </div>
+      
+      <div id="noticeDetailView" style="display:none">
+        <div style="margin-bottom:24px">
+          <button class="btn outline small" id="backToListBtn">← 목록으로</button>
+        </div>
+        <div id="noticeDetailContent"></div>
+      </div>
+    </div>
+  </section>
+
   <section class="panel" id="kpisPanel">
     <div class="h">
       <strong>🔍 검색 및 필터</strong>
@@ -407,6 +450,7 @@
         <button class="btn small outline" id="openFinSpecialNoteBtn" style="border-color:var(--primary); color:var(--primary)">📌 특이사항</button>
         <button class="btn small" id="openFinAddModalBtn">➕ 새 항목</button>
         <button class="btn success small" id="cloneFinSelectedBtn">📋 복제</button>
+        <button class="btn outline small" id="exportFinExcelBtn">📊 엑셀 내보내기</button>
         <button class="btn danger small" id="removeFinSelectedBtn">🗑️ 선택 삭제</button>
       </div>
     </div>
@@ -657,6 +701,36 @@
   </div>
 </div>
 
+<!-- 공지사항 작성/수정 모달 -->
+<div class="modal-back" id="noticeModalBack">
+  <div class="modal" style="max-width:700px">
+    <div class="mh">
+      <strong id="noticeModalTitle">✍️ 공지사항 작성</strong>
+      <button class="btn small outline" id="closeNoticeModalBtn">✕ 닫기</button>
+    </div>
+    <div class="mb">
+      <div style="margin-bottom:16px">
+        <label style="display:block; font-size:14px; font-weight:600; color:var(--muted); margin-bottom:8px">제목</label>
+        <input type="text" id="noticeTitle" placeholder="공지사항 제목을 입력하세요..." style="width:100%">
+      </div>
+      <div style="margin-bottom:16px">
+        <label style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; color:var(--muted); cursor:pointer">
+          <input type="checkbox" id="noticePinned" style="width:auto; margin:0">
+          <span>필독 공지사항으로 설정</span>
+        </label>
+      </div>
+      <div style="margin-bottom:16px">
+        <label style="display:block; font-size:14px; font-weight:600; color:var(--muted); margin-bottom:8px">내용</label>
+        <textarea id="noticeContent" rows="12" style="width:100%; padding:14px 18px; border-radius:12px; border:2px solid var(--border); background:var(--card); color:var(--text); font-size:15px; font-weight:500; resize:vertical; font-family:inherit; line-height:1.6" placeholder="공지사항 내용을 입력하세요..."></textarea>
+      </div>
+      <div style="display:flex; gap:12px; justify-content:flex-end">
+        <button class="btn outline" id="cancelNoticeBtn">취소</button>
+        <button class="btn" id="saveNoticeBtn">💾 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -720,6 +794,7 @@ const state = {
   placeSubType: 'reward',
   rows: {place: [], blog: [], project: []},
   financeData: {},
+  notices: [],
   specialNotes: {
     place_reward: '',
     place_distribution: '',
@@ -753,8 +828,7 @@ const CONFIGS = {
       {key:'client', label:'업체명', type:'text', required:true},
       {key:'mid', label:'Mid', type:'url'},
       {key:'keywords', label:'키워드', type:'text'},
-      {key:'startDate', label:'시작일', type:'date', required:true},
-      {key:'endDate', label:'종료일', type:'date'},
+      {key:'workPeriod', label:'작업기간', type:'dateRange'},
       {key:'units', label:'일타', type:'number'},
       {key:'days', label:'일수', type:'number'},
       {key:'unitPrice', label:'단가', type:'number'},
@@ -770,12 +844,11 @@ const CONFIGS = {
       {key:'url', label:'URL', type:'url'},
       {key:'realName', label:'실/비', type:'select', options:['실명','비실명']},
       {key:'category', label:'구분', type:'select', options:['정보성','후기성']},
-      {key:'totalQty', label:'총수량', type:'number'},
-      {key:'dailyPublish', label:'일 발행', type:'number'},
+      {key:'totalQty', label:'총수량', type:'number', width:'70px'},
+      {key:'dailyPublish', label:'일 발행', type:'number', width:'70px'},
       {key:'unitPrice', label:'단가', type:'number'},
       {key:'keywords', label:'키워드', type:'text'},
-      {key:'startDate', label:'시작일', type:'date', required:true},
-      {key:'endDate', label:'종료일', type:'date'},
+      {key:'workPeriod', label:'작업기간', type:'dateRange'},
       {key:'cost', label:'작업비', type:'computed'},
       {key:'tax', label:'세금', type:'select', options:['발행','미발행']},
       {key:'note', label:'비고', type:'text'}
@@ -795,8 +868,7 @@ const CONFIGS = {
       {key:'client', label:'업체명', type:'text', required:true},
       {key:'mid', label:'Mid', type:'url'},
       {key:'keywords', label:'키워드', type:'text'},
-      {key:'startDate', label:'시작일', type:'date', required:true},
-      {key:'endDate', label:'종료일', type:'date'},
+      {key:'workPeriod', label:'작업기간', type:'dateRange'},
       {key:'totalQty', label:'총량', type:'number'},
       {key:'unitPrice', label:'단가', type:'number'},
       {key:'cost', label:'작업비', type:'computed'},
@@ -815,8 +887,7 @@ const CONFIGS = {
       {key:'url', label:'URL', type:'url'},
       {key:'category', label:'카테고리', type:'text'},
       {key:'dailyCost', label:'하루비용', type:'number'},
-      {key:'startDate', label:'시작일', type:'date', required:true},
-      {key:'endDate', label:'종료일', type:'date'},
+      {key:'workPeriod', label:'작업기간', type:'dateRange'},
       {key:'days', label:'기간(일)', type:'computed'},
       {key:'totalSpent', label:'총 지출비', type:'computed'},
       {key:'note', label:'메모', type:'text'}
@@ -982,6 +1053,9 @@ function initFirebase() {
       
       // Special Notes 로드
       loadSpecialNotes();
+      
+      // 공지사항 로드
+      loadNotices();
       
       db.ref('.info/connected').on('value', s => {
         state.isFirebaseConnected = s.val() === true;
@@ -1727,7 +1801,10 @@ function renderTable() {
   if(titleEl) titleEl.textContent = config.name;
   
   let h = '<tr><th class="center"><input type="checkbox" id="chkAll"></th>';
-  config.fields.forEach(f => h += `<th class="${f.type === 'number' || f.type === 'computed' ? 'num' : ''}">${f.label}</th>`);
+  config.fields.forEach(f => {
+    const widthStyle = f.width ? ` style="width:${f.width}"` : '';
+    h += `<th class="${f.type === 'number' || f.type === 'computed' ? 'num' : ''}"${widthStyle}>${f.label}</th>`;
+  });
   h += '</tr>';
   
   const theadEl = $('#thead');
@@ -1787,6 +1864,28 @@ function renderTable() {
           td.textContent = fmtMoney(row.totalSpent || 0);
           td.className = 'num';
         }
+      } else if (f.type === 'dateRange') {
+        // 작업기간 표시 (시작일~종료일)
+        const startDate = row.startDate || '';
+        const endDate = row.endDate || '';
+        const badge = getDDayBadge(row.endDate);
+        
+        if (startDate && endDate) {
+          td.innerHTML = `${startDate}~${endDate} ${badge}`;
+        } else if (startDate) {
+          td.innerHTML = `${startDate}~ ${badge}`;
+        } else if (endDate) {
+          td.innerHTML = `~${endDate} ${badge}`;
+        } else {
+          td.textContent = '기간 설정';
+          td.style.color = 'var(--muted)';
+        }
+        
+        td.style.cursor = 'pointer';
+        td.style.whiteSpace = 'nowrap';
+        td.addEventListener('click', () => {
+          openDateRangePicker(row, state.currentType);
+        });
       } else if (f.type === 'number') {
         td.textContent = row[f.key] ?? '';
         td.className = 'num';
@@ -1796,7 +1895,7 @@ function renderTable() {
         const urlValue = row[f.key] || '';
         if (urlValue) {
           const btn = document.createElement('button');
-          btn.className = 'btn mini';
+          btn.className = 'btn tiny';
           btn.textContent = '🔗 열기';
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -1849,12 +1948,6 @@ function renderTable() {
           wrapper.appendChild(memoBtn);
           td.appendChild(wrapper);
         }
-      } else if (f.key === 'endDate') {
-        const dateText = row[f.key] || '';
-        const badge = getDDayBadge(row.endDate);
-        td.innerHTML = `${dateText} ${badge}`;
-        td.style.cursor = 'pointer';
-        td.addEventListener('click', () => startEdit(td, row, f));
       } else {
         td.textContent = row[f.key] ?? '';
         td.style.cursor = 'pointer';
@@ -2465,7 +2558,12 @@ function openBulkEditModal() {
     
     formFields += `<div${full}><label>${f.label}</label>`;
     
-    if (f.type === 'select') {
+    if (f.type === 'dateRange') {
+      formFields += `<div style="display:flex; gap:8px; align-items:center">
+        <input id="bulk_${f.key}" type="text" placeholder="변경 안함" readonly style="flex:1; cursor:pointer">
+        <button type="button" class="btn small bulk-date-btn" data-key="${f.key}" style="white-space:nowrap">📅 기간설정</button>
+      </div>`;
+    } else if (f.type === 'select') {
       formFields += `<select id="bulk_${f.key}"><option value="">변경 안함</option>`;
       f.options.forEach(o => formFields += `<option value="${o}">${o}</option>`);
       formFields += '</select>';
@@ -2500,6 +2598,18 @@ function openBulkEditModal() {
   modal.appendChild(content);
   document.body.appendChild(modal);
   
+  // dateRange 버튼 이벤트 리스너 추가
+  const dateRangeBtns = content.querySelectorAll('.bulk-date-btn');
+  dateRangeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.getAttribute('data-key');
+      const input = content.querySelector(`#bulk_${key}`);
+      if (input) {
+        openDateRangeModal(input);
+      }
+    });
+  });
+  
   const closeModal = () => {
     if(document.body.contains(modal)) document.body.removeChild(modal);
   };
@@ -2511,6 +2621,21 @@ function openBulkEditModal() {
     const updates = {};
     config.fields.forEach(f => {
       if (f.type === 'computed') return;
+      if (f.type === 'dateRange') {
+        // workPeriod 값을 startDate와 endDate로 분리
+        const el = content.querySelector(`#bulk_${f.key}`);
+        if (el && el.value) {
+          const dateRange = el.value;
+          if (dateRange.includes('~')) {
+            const [start, end] = dateRange.split('~').map(d => d.trim());
+            updates.startDate = start;
+            updates.endDate = end;
+          } else {
+            updates.startDate = dateRange.trim();
+          }
+        }
+        return;
+      }
       const el = content.querySelector(`#bulk_${f.key}`);
       if (el && el.value) {
         updates[f.key] = f.type === 'number' ? parseNum(el.value) : el.value;
@@ -3639,6 +3764,120 @@ function openDateRangeModal(inputElement) {
   });
 }
 
+function openDateRangePicker(row, workType) {
+  // 기존 값 가져오기
+  const startDate = row.startDate || '';
+  const endDate = row.endDate || '';
+  
+  // 기존 모달이 있으면 제거
+  const existingModal = document.querySelector('.date-range-modal-back');
+  if (existingModal) {
+    document.body.removeChild(existingModal);
+  }
+  
+  // 모달 생성
+  const modalBack = document.createElement('div');
+  modalBack.className = 'date-range-modal-back';
+  
+  const modal = document.createElement('div');
+  modal.className = 'date-range-modal';
+  modal.innerHTML = `
+    <div class="date-range-modal-header">
+      <strong>📅 작업기간 설정</strong>
+      <button class="btn mini outline" id="closeDateModal">✕</button>
+    </div>
+    <div class="date-picker-grid">
+      <div class="date-picker-field">
+        <label>시작일</label>
+        <input type="date" id="modalStartDate" value="${startDate}">
+      </div>
+      <div class="date-picker-field">
+        <label>종료일</label>
+        <input type="date" id="modalEndDate" value="${endDate}">
+      </div>
+    </div>
+    <div class="date-picker-actions">
+      <button class="btn-cancel" id="cancelDateModal">취소</button>
+      <button class="btn-apply" id="applyDateModal">적용</button>
+    </div>
+  `;
+  
+  modalBack.appendChild(modal);
+  document.body.appendChild(modalBack);
+  
+  const startInput = modal.querySelector('#modalStartDate');
+  const endInput = modal.querySelector('#modalEndDate');
+  
+  const closeModal = () => {
+    if (document.body.contains(modalBack)) {
+      document.body.removeChild(modalBack);
+    }
+  };
+  
+  const applyDates = () => {
+    const start = startInput.value;
+    const end = endInput.value;
+    
+    // 날짜 업데이트
+    row.startDate = start;
+    row.endDate = end;
+    
+    // 프로젝트인 경우 days 재계산
+    if (workType === 'project' && start && end) {
+      const startDateObj = new Date(start);
+      const endDateObj = new Date(end);
+      const diffTime = Math.abs(endDateObj - startDateObj);
+      row.days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      row.totalSpent = (row.dailyCost || 0) * (row.days || 0);
+    }
+    
+    // 데이터 저장
+    saveData(row, workType);
+    
+    // 테이블 다시 렌더링
+    render();
+    
+    closeModal();
+  };
+  
+  // 이벤트 리스너
+  modal.querySelector('#applyDateModal').addEventListener('click', (e) => {
+    e.stopPropagation();
+    applyDates();
+  });
+  
+  modal.querySelector('#cancelDateModal').addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeModal();
+  });
+  
+  modal.querySelector('#closeDateModal').addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeModal();
+  });
+  
+  // 배경 클릭 시 닫기
+  modalBack.addEventListener('click', (e) => {
+    if (e.target === modalBack) {
+      closeModal();
+    }
+  });
+  
+  // ESC 키로 닫기
+  const handleEsc = (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+      document.removeEventListener('keydown', handleEsc);
+    }
+  };
+  document.addEventListener('keydown', handleEsc);
+  
+  // 모달 내부 클릭은 전파 중지
+  modal.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+}
+
 function openFinAddModal() {
   const modal = document.createElement('div');
   modal.className = 'modal-back active';
@@ -4150,7 +4389,13 @@ function openAddModal() {
     
     html += `<div${full}><label>${f.label}${f.required ? ' *' : ''}</label>`;
     
-    if (f.type === 'select') {
+    if (f.type === 'dateRange') {
+      // 작업기간 필드는 input + 모달 버튼으로 처리
+      html += `<div style="display:flex; gap:8px; align-items:center">
+        <input id="a${f.key}" type="text" placeholder="YYYY-MM-DD~YYYY-MM-DD" readonly style="flex:1; cursor:pointer">
+        <button type="button" class="btn small" id="btn${f.key}" style="white-space:nowrap">📅 기간설정</button>
+      </div>`;
+    } else if (f.type === 'select') {
       html += `<select id="a${f.key}" ${req}><option value="">선택</option>`;
       f.options.forEach(o => html += `<option>${o}</option>`);
       html += '</select>';
@@ -4168,6 +4413,22 @@ function openAddModal() {
   </div>`;
   
   form.innerHTML = html;
+  
+  // dateRange 타입 버튼에 이벤트 리스너 추가
+  config.fields.forEach(f => {
+    if (f.type === 'dateRange') {
+      const btn = $(`#btn${f.key}`);
+      const input = $(`#a${f.key}`);
+      if (btn && input) {
+        btn.addEventListener('click', () => {
+          openDateRangeModal(input);
+        });
+        input.addEventListener('click', () => {
+          openDateRangeModal(input);
+        });
+      }
+    }
+  });
   
   const modalBack = $('#addModalBack');
   if(modalBack) modalBack.classList.add('active');
@@ -4192,6 +4453,25 @@ function openAddModal() {
       if (f.type === 'hidden') {
         // hidden 필드는 defaultValue 사용
         data[f.key] = f.defaultValue;
+        return;
+      }
+      if (f.type === 'dateRange') {
+        // workPeriod 값을 startDate와 endDate로 분리
+        const el = $(`#a${f.key}`);
+        if (el && el.value) {
+          const dateRange = el.value;
+          if (dateRange.includes('~')) {
+            const [start, end] = dateRange.split('~').map(d => d.trim());
+            data.startDate = start;
+            data.endDate = end;
+          } else {
+            data.startDate = dateRange.trim();
+            data.endDate = '';
+          }
+        } else {
+          data.startDate = '';
+          data.endDate = '';
+        }
         return;
       }
       const el = $(`#a${f.key}`);
@@ -4315,6 +4595,276 @@ function saveCurrentSpecialNote() {
   
   closeSpecialNoteModal();
   alert('특이사항이 저장되었습니다.');
+}
+
+// 공지사항 관련 함수들
+function loadNotices() {
+  if (!state.useFirebase || !db) return;
+  
+  db.ref('notices').once('value').then(snapshot => {
+    const data = snapshot.val();
+    if (data) {
+      state.notices = Object.keys(data).map(key => ({
+        id: key,
+        ...data[key]
+      })).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      renderNotices();
+    }
+  }).catch(e => {
+    console.error('공지사항 로드 실패:', e);
+  });
+}
+
+function renderNotices() {
+  const listContainer = $('#noticeList');
+  if (!listContainer) return;
+  
+  if (state.notices.length === 0) {
+    listContainer.innerHTML = `
+      <div class="notice-empty">
+        <div class="notice-empty-icon">📢</div>
+        <div style="font-size:16px; font-weight:600; color:var(--muted)">등록된 공지사항이 없습니다</div>
+      </div>
+    `;
+    return;
+  }
+  
+  // 필독 공지를 먼저, 그 다음 일반 공지
+  const sortedNotices = [...state.notices].sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+  
+  listContainer.innerHTML = sortedNotices.map(notice => {
+    const date = new Date(notice.createdAt);
+    const dateStr = date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+    
+    return `
+      <div class="notice-item ${notice.pinned ? 'pinned' : ''}" onclick="viewNotice('${notice.id}')">
+        <div class="notice-header">
+          <span class="notice-badge ${notice.pinned ? 'pinned' : 'normal'}">
+            ${notice.pinned ? '필독' : '공지'}
+          </span>
+        </div>
+        <div class="notice-title">${notice.title}</div>
+        <div class="notice-meta">
+          <div class="notice-meta-item">
+            <span>✍️</span>
+            <span>${notice.author || '관리자'}</span>
+          </div>
+          <div class="notice-meta-item">
+            <span>📅</span>
+            <span>${dateStr} ${timeStr}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openNoticeModal(noticeId = null) {
+  const modalBack = $('#noticeModalBack');
+  const title = $('#noticeModalTitle');
+  const titleInput = $('#noticeTitle');
+  const contentInput = $('#noticeContent');
+  const pinnedCheckbox = $('#noticePinned');
+  
+  if (!modalBack || !titleInput || !contentInput || !pinnedCheckbox) return;
+  
+  if (noticeId) {
+    const notice = state.notices.find(n => n.id === noticeId);
+    if (notice) {
+      title.textContent = '✍️ 공지사항 수정';
+      titleInput.value = notice.title;
+      contentInput.value = notice.content;
+      pinnedCheckbox.checked = notice.pinned || false;
+      modalBack.dataset.editId = noticeId;
+    }
+  } else {
+    title.textContent = '✍️ 공지사항 작성';
+    titleInput.value = '';
+    contentInput.value = '';
+    pinnedCheckbox.checked = false;
+    delete modalBack.dataset.editId;
+  }
+  
+  modalBack.classList.add('active');
+}
+
+function closeNoticeModal() {
+  const modalBack = $('#noticeModalBack');
+  if (modalBack) {
+    modalBack.classList.remove('active');
+  }
+}
+
+function saveNotice() {
+  const titleInput = $('#noticeTitle');
+  const contentInput = $('#noticeContent');
+  const pinnedCheckbox = $('#noticePinned');
+  const modalBack = $('#noticeModalBack');
+  const userEmail = $('#userEmail')?.textContent || 'admin@entjcompany.com';
+  
+  if (!titleInput || !contentInput || !pinnedCheckbox) return;
+  
+  const title = titleInput.value.trim();
+  const content = contentInput.value.trim();
+  const pinned = pinnedCheckbox.checked;
+  
+  if (!title) {
+    alert('제목을 입력하세요.');
+    return;
+  }
+  
+  if (!content) {
+    alert('내용을 입력하세요.');
+    return;
+  }
+  
+  const editId = modalBack?.dataset.editId;
+  
+  if (editId) {
+    // 수정
+    const notice = state.notices.find(n => n.id === editId);
+    if (notice) {
+      notice.title = title;
+      notice.content = content;
+      notice.pinned = pinned;
+      notice.updatedAt = new Date().toISOString();
+      
+      if (state.useFirebase && db) {
+        db.ref('notices').child(editId).set(notice).then(() => {
+          alert('공지사항이 수정되었습니다.');
+          renderNotices();
+          closeNoticeModal();
+        }).catch(e => {
+          console.error('공지사항 수정 실패:', e);
+          alert('공지사항 수정에 실패했습니다.');
+        });
+      } else {
+        renderNotices();
+        closeNoticeModal();
+        alert('공지사항이 수정되었습니다.');
+      }
+    }
+  } else {
+    // 신규 작성
+    const newNotice = {
+      title,
+      content,
+      pinned,
+      author: userEmail.split('@')[0],
+      createdAt: new Date().toISOString()
+    };
+    
+    if (state.useFirebase && db) {
+      const newRef = db.ref('notices').push();
+      newNotice.id = newRef.key;
+      
+      newRef.set(newNotice).then(() => {
+        state.notices.unshift(newNotice);
+        alert('공지사항이 등록되었습니다.');
+        renderNotices();
+        closeNoticeModal();
+      }).catch(e => {
+        console.error('공지사항 저장 실패:', e);
+        alert('공지사항 저장에 실패했습니다.');
+      });
+    } else {
+      newNotice.id = Date.now().toString();
+      state.notices.unshift(newNotice);
+      renderNotices();
+      closeNoticeModal();
+      alert('공지사항이 등록되었습니다.');
+    }
+  }
+}
+
+function viewNotice(noticeId) {
+  const notice = state.notices.find(n => n.id === noticeId);
+  if (!notice) return;
+  
+  // 리스트 뷰 숨기고 상세 뷰 표시
+  const listView = $('#noticeListView');
+  const detailView = $('#noticeDetailView');
+  const detailContent = $('#noticeDetailContent');
+  
+  if (!listView || !detailView || !detailContent) return;
+  
+  const date = new Date(notice.createdAt);
+  const dateStr = date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+  
+  detailContent.innerHTML = `
+    <div class="notice-detail">
+      <div class="notice-detail-header">
+        ${notice.pinned ? '<span class="notice-badge pinned">필독</span>' : '<span class="notice-badge normal">공지</span>'}
+        <h2 class="notice-detail-title">${notice.title}</h2>
+        <div class="notice-detail-meta">
+          <div class="notice-meta-item">
+            <span>✍️</span>
+            <span>${notice.author || '관리자'}</span>
+          </div>
+          <div class="notice-meta-item">
+            <span>📅</span>
+            <span>${dateStr} ${timeStr}</span>
+          </div>
+          ${notice.updatedAt ? `
+          <div class="notice-meta-item">
+            <span>📝</span>
+            <span>수정됨</span>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+      <div class="notice-detail-content">${notice.content}</div>
+      <div class="notice-detail-actions">
+        <button class="btn outline small" onclick="editNotice('${notice.id}')">✏️ 수정</button>
+        <button class="btn danger small" onclick="deleteNotice('${notice.id}')">🗑️ 삭제</button>
+      </div>
+    </div>
+  `;
+  
+  listView.style.display = 'none';
+  detailView.style.display = 'block';
+}
+
+function backToNoticeList() {
+  const listView = $('#noticeListView');
+  const detailView = $('#noticeDetailView');
+  
+  if (listView && detailView) {
+    listView.style.display = 'block';
+    detailView.style.display = 'none';
+  }
+}
+
+function editNotice(noticeId) {
+  backToNoticeList();
+  openNoticeModal(noticeId);
+}
+
+function deleteNotice(noticeId) {
+  if (!confirm('이 공지사항을 삭제하시겠습니까?')) return;
+  
+  if (state.useFirebase && db) {
+    db.ref('notices').child(noticeId).remove().then(() => {
+      state.notices = state.notices.filter(n => n.id !== noticeId);
+      alert('공지사항이 삭제되었습니다.');
+      backToNoticeList();
+      renderNotices();
+    }).catch(e => {
+      console.error('공지사항 삭제 실패:', e);
+      alert('공지사항 삭제에 실패했습니다.');
+    });
+  } else {
+    state.notices = state.notices.filter(n => n.id !== noticeId);
+    backToNoticeList();
+    renderNotices();
+    alert('공지사항이 삭제되었습니다.');
+  }
 }
 
 function initApp() {
@@ -4590,6 +5140,48 @@ function initApp() {
     });
   }
   
+  const exportFinExcelBtn = $('#exportFinExcelBtn');
+  if (exportFinExcelBtn) {
+    exportFinExcelBtn.addEventListener('click', () => {
+      if (!state.finSelected.size) return alert('엑셀로 내보낼 항목을 선택하세요');
+      
+      // 선택된 항목들을 수집
+      const selected = [];
+      state.finSelected.forEach(key => {
+        const parts = key.split('_');
+        const type = parts[0];
+        const id = parts.slice(1).join('_');
+        const item = state.financeData[type].find(r => r.id === id);
+        if (item) {
+          selected.push({ ...item, type });
+        }
+      });
+      
+      // 엑셀 데이터 생성
+      const data = selected.map(row => ({
+        '월': row.month || '',
+        '담당자': row.manager || '',
+        '업체명': row.client || '',
+        '대표': row.ceo || '',
+        '매출': row.revenue || 0,
+        '입금완료': row.deposit || 0,
+        '작업기간': row.workPeriod || '',
+        '계약상태': row.contractStatus || '',
+        '작업비': row.cost || 0,
+        '계약이익': row.profit || 0,
+        '영업이윤율': row.margin ? `${row.margin}%` : '',
+        '계약상세': row.memo || '',
+        '세금': row.tax || ''
+      }));
+      
+      // XLSX 라이브러리를 사용하여 엑셀 파일 생성
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, '매출매입');
+      XLSX.writeFile(wb, `매출매입_${today()}.xlsx`);
+    });
+  }
+  
   // 특이사항 버튼 이벤트 리스너
   const openSpecialNoteBtn = $('#openSpecialNoteBtn');
   if (openSpecialNoteBtn) {
@@ -4624,6 +5216,51 @@ function initApp() {
   if (openFinSpecialNoteBtn) {
     openFinSpecialNoteBtn.addEventListener('click', () => {
       openSpecialNoteModal();
+    });
+  }
+  
+  // 공지사항 모달 이벤트 리스너
+  const openNoticeModalBtn = $('#openNoticeModalBtn');
+  if (openNoticeModalBtn) {
+    openNoticeModalBtn.addEventListener('click', () => {
+      openNoticeModal();
+    });
+  }
+  
+  const closeNoticeModalBtn = $('#closeNoticeModalBtn');
+  if (closeNoticeModalBtn) {
+    closeNoticeModalBtn.addEventListener('click', () => {
+      closeNoticeModal();
+    });
+  }
+  
+  const cancelNoticeBtn = $('#cancelNoticeBtn');
+  if (cancelNoticeBtn) {
+    cancelNoticeBtn.addEventListener('click', () => {
+      closeNoticeModal();
+    });
+  }
+  
+  const saveNoticeBtn = $('#saveNoticeBtn');
+  if (saveNoticeBtn) {
+    saveNoticeBtn.addEventListener('click', () => {
+      saveNotice();
+    });
+  }
+  
+  const noticeModalBack = $('#noticeModalBack');
+  if (noticeModalBack) {
+    noticeModalBack.addEventListener('click', (e) => {
+      if (e.target === noticeModalBack) {
+        closeNoticeModal();
+      }
+    });
+  }
+  
+  const backToListBtn = $('#backToListBtn');
+  if (backToListBtn) {
+    backToListBtn.addEventListener('click', () => {
+      backToNoticeList();
     });
   }
   
