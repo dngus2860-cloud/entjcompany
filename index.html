@@ -389,7 +389,7 @@
 
   <div class="tabs">
     <div class="tab active" data-type="place">📍 플레이스 작업</div>
-    <div class="place-subtabs" id="placeSubtabs" style="display:flex; gap:8px; margin-left:12px">
+    <div class="place-subtabs" id="placeSubtabs">
       <div class="subtab active" data-subtype="reward">🎁 리워드</div>
       <div class="subtab" data-subtype="distribution">📦 배포</div>
     </div>
@@ -1373,13 +1373,18 @@ function loadData(key) {
 function switchType(type) {
   const placeSubtabs = $('#placeSubtabs');
   
-  // 플레이스 탭 토글 처리: 이미 활성화되어 있고 서브탭이 표시 중일 때
+  // 플레이스 탭 토글 처리: 이미 활성화되어 있을 때 서브탭만 토글
   if (type === 'place' && state.currentType === 'place') {
-    if (placeSubtabs && placeSubtabs.classList.contains('show')) {
-      // 서브탭 숨김
-      placeSubtabs.classList.remove('show');
-      return;
+    if (placeSubtabs) {
+      if (placeSubtabs.classList.contains('show')) {
+        // 서브탭 숨김
+        placeSubtabs.classList.remove('show');
+      } else {
+        // 서브탭 표시
+        placeSubtabs.classList.add('show');
+      }
     }
+    return; // 이미 플레이스 탭이므로 나머지 처리 스킵
   }
   
   state.currentType = type;
