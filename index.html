@@ -344,6 +344,25 @@
   .growth-icon{width:70px; height:70px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:32px}
   .growth-icon.positive{background:rgba(34,197,94,0.15)}
   .growth-icon.negative{background:rgba(239,68,68,0.15)}
+
+  /* 모달 스타일 */
+  .modal{display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center}
+  .modal.active{display:flex}
+  .modal-content{background:var(--panel); border:2px solid var(--border); border-radius:20px; max-width:500px; width:90%; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow); animation:modalSlideIn 0.3s ease}
+  @keyframes modalSlideIn{from{opacity:0; transform:translateY(-30px)} to{opacity:1; transform:translateY(0)}}
+  .modal-header{padding:24px 32px; border-bottom:2px solid var(--border); display:flex; justify-content:space-between; align-items:center; background:linear-gradient(to right, rgba(99,102,241,.05), transparent)}
+  .modal-header h2{font-size:20px; font-weight:700; margin:0}
+  .modal-close{background:transparent; border:none; font-size:24px; color:var(--muted); cursor:pointer; padding:0; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:8px; transition:all .3s}
+  .modal-close:hover{background:var(--card); color:var(--text); transform:rotate(90deg)}
+  .modal-body{padding:28px 32px}
+  .modal-description{color:var(--muted); font-size:14px; line-height:1.7; margin-bottom:20px}
+  .modal-description a{color:var(--primary-light); text-decoration:none; font-weight:600}
+  .modal-description a:hover{text-decoration:underline}
+  .api-status{padding:16px; background:var(--card2); border:2px solid var(--border); border-radius:12px; display:flex; align-items:center; gap:12px}
+  .api-status.connected{border-color:var(--green); background:rgba(34,197,94,0.1)}
+  .api-status.connected .status-indicator{background:var(--green)}
+  .status-indicator{width:10px; height:10px; border-radius:50%; background:var(--muted); animation:pulse 2s infinite}
+  .status-text{font-size:14px; font-weight:600; color:var(--text)}
 </style>
 </head>
 <body>
@@ -383,9 +402,38 @@
         <button class="logout-btn" id="logoutBtn">로그아웃</button>
       </div>
       <button class="btn outline" id="exportExcelBtn">📊 엑셀 내보내기</button>
+      <button class="btn outline" id="apiSettingsBtn">⚙️ API 설정</button>
       <button class="btn" id="themeBtn">🌓 테마 전환</button>
     </div>
   </header>
+
+  <!-- API 설정 모달 -->
+  <div id="apiModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>⚙️ Claude API 설정</h2>
+        <button class="modal-close" id="apiModalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-description">
+          AI 챗봇 기능을 사용하려면 Claude API 키가 필요합니다.<br>
+          <a href="https://console.anthropic.com" target="_blank">Anthropic Console</a>에서 API 키를 발급받으세요.
+        </p>
+        <div class="api-status" id="apiStatus">
+          <span class="status-indicator"></span>
+          <span class="status-text">API 키가 설정되지 않음</span>
+        </div>
+        <div class="filter-group" style="margin-top: 20px;">
+          <label class="filter-label">API 키</label>
+          <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." />
+        </div>
+        <div style="display: flex; gap: 12px; margin-top: 20px;">
+          <button class="btn" id="saveApiKey">💾 저장</button>
+          <button class="btn outline reset" id="deleteApiKey">🗑️ 삭제</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="tabs">
     <div class="tab active" data-type="place">📍 플레이스 작업</div>
@@ -6587,7 +6635,7 @@ if (document.readyState === 'loading') {
 const chatbot = {
   isOpen: false,
   messages: [],
-  apiKey: '', // Claude API 키 (사용자가 설정해야 함)
+  apiKey: localStorage.getItem('claude_api_key') || '', // localStorage에서 API 키 가져오기
   
   init() {
     console.log('챗봇 초기화 시작...');
@@ -6996,6 +7044,161 @@ if (document.readyState === 'loading') {
 } else {
   chatbot.init();
 }
+
+// API 설정 기능
+const apiSettings = {
+  init() {
+    const settingsBtn = $('#apiSettingsBtn');
+    const modal = $('#apiModal');
+    const closeBtn = $('#apiModalClose');
+    const saveBtn = $('#saveApiKey');
+    const deleteBtn = $('#deleteApiKey');
+    const input = $('#apiKeyInput');
+    
+    if (!settingsBtn || !modal) return;
+    
+    // 설정 버튼 클릭
+    settingsBtn.addEventListener('click', () => {
+      this.openModal();
+    });
+    
+    // 모달 닫기
+    closeBtn?.addEventListener('click', () => {
+      this.closeModal();
+    });
+    
+    // 모달 바깥 클릭시 닫기
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        this.closeModal();
+      }
+    });
+    
+    // 저장 버튼
+    saveBtn?.addEventListener('click', () => {
+      this.saveApiKey();
+    });
+    
+    // 삭제 버튼
+    deleteBtn?.addEventListener('click', () => {
+      this.deleteApiKey();
+    });
+    
+    // Enter 키로 저장
+    input?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        this.saveApiKey();
+      }
+    });
+  },
+  
+  openModal() {
+    const modal = $('#apiModal');
+    const input = $('#apiKeyInput');
+    
+    if (modal) {
+      modal.classList.add('active');
+      this.updateStatus();
+      
+      // 현재 저장된 키가 있으면 마스킹해서 표시
+      const savedKey = localStorage.getItem('claude_api_key');
+      if (savedKey && input) {
+        input.value = savedKey.substring(0, 12) + '••••••••';
+        input.setAttribute('placeholder', '새 API 키를 입력하거나 기존 키 유지');
+      }
+    }
+  },
+  
+  closeModal() {
+    const modal = $('#apiModal');
+    const input = $('#apiKeyInput');
+    
+    if (modal) {
+      modal.classList.remove('active');
+    }
+    if (input) {
+      input.value = '';
+    }
+  },
+  
+  saveApiKey() {
+    const input = $('#apiKeyInput');
+    const apiKey = input?.value.trim();
+    
+    if (!apiKey) {
+      alert('API 키를 입력해주세요.');
+      return;
+    }
+    
+    // 마스킹된 값이면 저장 안함
+    if (apiKey.includes('••••')) {
+      alert('기존 API 키가 유지됩니다.');
+      this.closeModal();
+      return;
+    }
+    
+    // API 키 형식 검증 (sk-ant-api로 시작)
+    if (!apiKey.startsWith('sk-ant-api')) {
+      alert('올바른 Claude API 키 형식이 아닙니다.\n(sk-ant-api로 시작해야 합니다)');
+      return;
+    }
+    
+    // localStorage에 저장
+    localStorage.setItem('claude_api_key', apiKey);
+    
+    // chatbot 객체의 apiKey도 업데이트
+    if (chatbot) {
+      chatbot.apiKey = apiKey;
+    }
+    
+    alert('✅ API 키가 저장되었습니다!\n이제 AI 챗봇 기능을 사용할 수 있습니다.');
+    this.updateStatus();
+    this.closeModal();
+  },
+  
+  deleteApiKey() {
+    if (!confirm('정말로 API 키를 삭제하시겠습니까?')) {
+      return;
+    }
+    
+    localStorage.removeItem('claude_api_key');
+    
+    // chatbot 객체의 apiKey도 초기화
+    if (chatbot) {
+      chatbot.apiKey = '';
+    }
+    
+    alert('🗑️ API 키가 삭제되었습니다.');
+    this.updateStatus();
+    this.closeModal();
+  },
+  
+  updateStatus() {
+    const statusEl = $('#apiStatus');
+    const statusText = statusEl?.querySelector('.status-text');
+    const apiKey = localStorage.getItem('claude_api_key');
+    
+    if (statusEl && statusText) {
+      if (apiKey) {
+        statusEl.classList.add('connected');
+        statusText.textContent = `✅ API 키 설정됨 (${apiKey.substring(0, 12)}...)`;
+      } else {
+        statusEl.classList.remove('connected');
+        statusText.textContent = '❌ API 키가 설정되지 않음';
+      }
+    }
+  }
+};
+
+// API 설정 초기화
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    apiSettings.init();
+  });
+} else {
+  apiSettings.init();
+}
+
 </script>
 
 </body>
