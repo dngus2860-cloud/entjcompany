@@ -160,13 +160,16 @@
   .chatbot-fab:hover{transform:scale(1.1); box-shadow:0 12px 32px rgba(99,102,241,.6)}
   .chatbot-fab.active{background:var(--red)}
   
-  .chatbot-window{position:fixed; bottom:100px; right:30px; width:400px; height:600px; background:var(--panel); border:2px solid var(--border); border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,.5); z-index:998; display:none; flex-direction:column; overflow:hidden}
+  .chatbot-window{position:fixed; bottom:100px; right:30px; width:400px; height:600px; background:var(--panel); border:2px solid var(--border); border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,.5); z-index:998; display:none; flex-direction:column; overflow:hidden; transition:all .3s}
   .chatbot-window.active{display:flex}
+  .chatbot-window.fullscreen{width:calc(100vw - 60px); height:calc(100vh - 60px); max-width:1400px; bottom:30px; right:30px; left:50%; transform:translateX(-50%)}
   
   .chatbot-header{padding:20px; background:var(--gradient-1); color:white; display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid rgba(255,255,255,.2)}
   .chatbot-header h3{font-size:18px; font-weight:700; display:flex; align-items:center; gap:10px; margin:0}
-  .chatbot-close{background:rgba(255,255,255,.2); border:none; color:white; width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:18px; transition:all .2s}
-  .chatbot-close:hover{background:rgba(255,255,255,.3); transform:rotate(90deg)}
+  .chatbot-header-actions{display:flex; align-items:center; gap:8px}
+  .chatbot-fullscreen-btn, .chatbot-close{background:rgba(255,255,255,.2); border:none; color:white; width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:18px; transition:all .2s; display:flex; align-items:center; justify-content:center}
+  .chatbot-fullscreen-btn:hover, .chatbot-close:hover{background:rgba(255,255,255,.3)}
+  .chatbot-close:hover{transform:rotate(90deg)}
   
   .chatbot-messages{flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:12px; background:var(--bg)}
   .chatbot-message{max-width:80%; padding:12px 16px; border-radius:12px; font-size:14px; line-height:1.6; animation:fadeInUp .3s}
@@ -6382,17 +6385,23 @@ if (document.readyState === 'loading') {
 <div class="chatbot-window" id="chatbotWindow">
   <div class="chatbot-header">
     <h3>🤖 ENTJ 어시스턴트</h3>
-    <button class="chatbot-close" id="chatbotClose">✕</button>
+    <div class="chatbot-header-actions">
+      <button class="chatbot-fullscreen-btn" id="chatbotFullscreen" title="전체화면">⛶</button>
+      <button class="chatbot-close" id="chatbotClose">✕</button>
+    </div>
   </div>
   
   <div class="chatbot-messages" id="chatbotMessages">
     <div class="chatbot-message system">
-      안녕하세요! ENTJ 어시스턴트입니다. 무엇을 도와드릴까요?
+      👋 안녕하세요! ENTJ 어시스턴트입니다.<br>
+      아래 명령어를 클릭하거나 직접 입력해주세요.
     </div>
     <div class="chatbot-suggestions">
-      <button class="chatbot-suggestion-btn" data-text="이번 달 총 매출은?">💰 이번 달 매출</button>
-      <button class="chatbot-suggestion-btn" data-text="마감 임박 작업 알려줘">⏰ 마감 임박</button>
-      <button class="chatbot-suggestion-btn" data-text="담당자별 작업량 보여줘">👥 담당자별 통계</button>
+      <button class="chatbot-suggestion-btn" data-text="이번달 매출">💰 이번달 매출</button>
+      <button class="chatbot-suggestion-btn" data-text="작업 마감">⏰ 작업 마감</button>
+      <button class="chatbot-suggestion-btn" data-text="담당자별">👥 담당자별</button>
+      <button class="chatbot-suggestion-btn" data-text="월별 추이">📈 월별 추이</button>
+      <button class="chatbot-suggestion-btn" data-text="매출 마감">💵 매출/매입 마감</button>
     </div>
   </div>
   
@@ -6440,6 +6449,14 @@ const chatbot = {
     if (close) {
       close.addEventListener('click', () => {
         this.close();
+      });
+    }
+    
+    // 전체화면 버튼
+    const fullscreenBtn = $('#chatbotFullscreen');
+    if (fullscreenBtn) {
+      fullscreenBtn.addEventListener('click', () => {
+        this.toggleFullscreen();
       });
     }
     
@@ -6522,6 +6539,25 @@ const chatbot = {
     }
   },
   
+  toggleFullscreen() {
+    const chatWindow = $('#chatbotWindow');
+    const fullscreenBtn = $('#chatbotFullscreen');
+    
+    if (chatWindow) {
+      const isFullscreen = chatWindow.classList.contains('fullscreen');
+      
+      if (isFullscreen) {
+        chatWindow.classList.remove('fullscreen');
+        if (fullscreenBtn) fullscreenBtn.textContent = '⛶';
+        if (fullscreenBtn) fullscreenBtn.title = '전체화면';
+      } else {
+        chatWindow.classList.add('fullscreen');
+        if (fullscreenBtn) fullscreenBtn.textContent = '⛶';
+        if (fullscreenBtn) fullscreenBtn.title = '축소';
+      }
+    }
+  },
+  
   async sendMessage() {
     const input = $('#chatbotInput');
     const message = input?.value.trim();
@@ -6553,29 +6589,34 @@ const chatbot = {
   handleLocalCommand(message) {
     const msg = message.toLowerCase();
     
-    // 매출 조회
-    if (msg.includes('매출') || msg.includes('수익')) {
-      return this.getRevenueReport();
+    // 1. 이번달 매출
+    if (msg.includes('이번달') || msg.includes('당월') || (msg.includes('월') && msg.includes('매출'))) {
+      return this.getMonthlyRevenue();
     }
     
-    // 마감 임박 작업
-    if (msg.includes('마감') || msg.includes('임박') || msg.includes('종료')) {
-      return this.getUrgentTasks();
+    // 2. 작업 마감 임박 (표)
+    if (msg.includes('작업') && (msg.includes('마감') || msg.includes('임박'))) {
+      return this.getUpcomingDeadlinesTable();
     }
     
-    // 담당자별 통계
-    if (msg.includes('담당자') && (msg.includes('통계') || msg.includes('작업량'))) {
-      return this.getManagerStats();
+    // 3. 담당자별 매출
+    if (msg.includes('담당자') || msg.includes('매니저')) {
+      return this.getManagerRevenueStats();
     }
     
-    // 작업 목록
-    if (msg.includes('작업') && (msg.includes('목록') || msg.includes('리스트'))) {
-      return this.getTaskList();
+    // 4. 월별 매출 추이
+    if (msg.includes('월별') || msg.includes('추이') || msg.includes('트렌드')) {
+      return this.getMonthlyTrendTable();
     }
     
-    // 오늘 할 일
-    if (msg.includes('오늘') || msg.includes('today')) {
-      return this.getTodayTasks();
+    // 5. 매출/매입 마감 (D-3 이내)
+    if ((msg.includes('매출') || msg.includes('매입')) && (msg.includes('마감') || msg.includes('임박'))) {
+      return this.getFinanceDeadlines();
+    }
+    
+    // 도움말
+    if (msg.includes('도움') || msg.includes('명령') || msg.includes('help')) {
+      return this.showLocalCommands();
     }
     
     return null; // 로컬로 처리 불가
@@ -6714,51 +6755,298 @@ const chatbot = {
     return response;
   },
   
-  async callClaudeAPI(message) {
-    // API 키가 없으면 안내 메시지
-    if (!this.apiKey) {
-      return '💡 **Claude API 연동 안내**\n\n' +
-             'AI 기능을 사용하려면 Claude API 키가 필요합니다.\n\n' +
-             '1. https://console.anthropic.com 에서 API 키 발급\n' +
-             '2. 개발자 콘솔에서 chatbot.apiKey = "YOUR_API_KEY" 입력\n\n' +
-             '현재는 기본 명령어만 사용 가능합니다:\n' +
-             '• "매출", "마감 임박", "담당자별 통계" 등';
+  // ===== 새로운 5가지 명령어 함수 =====
+  
+  // 1. 이번달 매출
+  getMonthlyRevenue() {
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    
+    if (!state.financeData || Object.keys(state.financeData).length === 0) {
+      return '📊 **매출/매입 데이터가 없습니다.**';
     }
     
-    try {
-      // 대시보드 컨텍스트 생성
-      const context = this.getDashboardContext();
-      
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.apiKey,
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 1024,
-          messages: [
-            {
-              role: 'user',
-              content: `당신은 ENTJ Company의 업무 관리 어시스턴트입니다. 다음은 현재 대시보드 데이터입니다:\n\n${context}\n\n사용자 질문: ${message}\n\n간단명료하게 답변해주세요.`
-            }
-          ]
-        })
+    let totalRevenue = 0;
+    let placeRevenue = 0;
+    let blogRevenue = 0;
+    let projectRevenue = 0;
+    let totalCount = 0;
+    
+    // 각 타입별로 처리 (financeData 사용)
+    ['place', 'blog', 'project'].forEach(type => {
+      const rows = state.financeData[type] || [];
+      rows.forEach(row => {
+        if (row.month && row.month === currentMonth) {
+          const revenue = row.revenue || 0;
+          totalRevenue += revenue;
+          totalCount++;
+          
+          if (type === 'place') placeRevenue += revenue;
+          else if (type === 'blog') blogRevenue += revenue;
+          else if (type === 'project') projectRevenue += revenue;
+        }
       });
-      
-      if (!response.ok) {
-        throw new Error('API 호출 실패');
-      }
-      
-      const data = await response.json();
-      return data.content[0].text;
-      
-    } catch (error) {
-      console.error('Claude API Error:', error);
-      return '❌ AI 응답을 가져오는데 실패했습니다. 로컬 명령어를 사용해주세요.';
+    });
+    
+    return `📊 **${currentMonth} 매출 현황**\n\n` +
+           `총 매출: ${totalRevenue.toLocaleString()}원\n` +
+           `작업 건수: ${totalCount}건\n\n` +
+           `─────────────\n` +
+           `플레이스: ${placeRevenue.toLocaleString()}원\n` +
+           `블로그: ${blogRevenue.toLocaleString()}원\n` +
+           `프로젝트: ${projectRevenue.toLocaleString()}원`;
+  },
+  
+  // 2. 작업 마감 임박 (표 형식)
+  getUpcomingDeadlinesTable() {
+    const now = new Date();
+    const allTasks = [
+      ...(state.rows.place || []),
+      ...(state.rows.blog || []),
+      ...(state.rows.project || [])
+    ];
+    
+    const upcoming = allTasks.filter(task => {
+      if (!task.endDate) return false;
+      const endDate = new Date(task.endDate);
+      const daysLeft = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+      return daysLeft >= 0 && daysLeft <= 7;
+    }).sort((a, b) => {
+      return new Date(a.endDate) - new Date(b.endDate);
+    }).slice(0, 10);
+    
+    if (upcoming.length === 0) {
+      return '✅ 7일 이내 마감되는 작업이 없습니다.';
     }
+    
+    let result = '⚠️ **작업 마감 임박**\n\n';
+    result += '┌─────────────────┬──────────────┬────────────┬────────┐\n';
+    result += '│ 업체명          │ 상품         │ 마감일     │ D-Day  │\n';
+    result += '├─────────────────┼──────────────┼────────────┼────────┤\n';
+    
+    upcoming.forEach(task => {
+      const endDate = new Date(task.endDate);
+      const daysLeft = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+      const dday = daysLeft === 0 ? 'D-Day' : `D-${daysLeft}`;
+      
+      const client = (task.client || '-').substring(0, 13).padEnd(13);
+      const product = (task.product || '-').substring(0, 11).padEnd(11);
+      const date = (task.endDate || '-').padEnd(10);
+      const ddayStr = dday.padEnd(6);
+      
+      result += `│ ${client} │ ${product} │ ${date} │ ${ddayStr} │\n`;
+    });
+    
+    result += '└─────────────────┴──────────────┴────────────┴────────┘';
+    
+    return result;
+  },
+  
+  // 3. 담당자별 매출
+  getManagerRevenueStats() {
+    if (!state.financeData || Object.keys(state.financeData).length === 0) {
+      return '📊 **매출/매입 데이터가 없습니다.**';
+    }
+    
+    const managerStats = {};
+    
+    ['place', 'blog', 'project'].forEach(type => {
+      const rows = state.financeData[type] || [];
+      rows.forEach(row => {
+        const manager = row.manager || '미지정';
+        const revenue = row.revenue || 0;
+        
+        if (!managerStats[manager]) {
+          managerStats[manager] = { count: 0, revenue: 0 };
+        }
+        
+        managerStats[manager].count++;
+        managerStats[manager].revenue += revenue;
+      });
+    });
+    
+    const sorted = Object.entries(managerStats).sort((a, b) => b[1].revenue - a[1].revenue);
+    
+    let result = '👥 **담당자별 매출 통계**\n\n';
+    result += '┌───────────────┬──────────┬─────────────────┐\n';
+    result += '│ 담당자        │ 작업건수 │ 총 매출         │\n';
+    result += '├───────────────┼──────────┼─────────────────┤\n';
+    
+    sorted.forEach(([manager, stats]) => {
+      const name = manager.substring(0, 11).padEnd(11);
+      const count = `${stats.count}건`.padEnd(8);
+      const revenue = `${stats.revenue.toLocaleString()}원`.padStart(15);
+      
+      result += `│ ${name} │ ${count} │ ${revenue} │\n`;
+    });
+    
+    result += '└───────────────┴──────────┴─────────────────┘';
+    
+    return result;
+  },
+  
+  // 4. 월별 매출 추이
+  getMonthlyTrendTable() {
+    if (!state.financeData || Object.keys(state.financeData).length === 0) {
+      return '📊 **매출/매입 데이터가 없습니다.**';
+    }
+    
+    const monthlyData = {};
+    
+    ['place', 'blog', 'project'].forEach(type => {
+      const rows = state.financeData[type] || [];
+      rows.forEach(row => {
+        if (!row.month) return;
+        const month = row.month; // YYYY-MM 형식
+        const revenue = row.revenue || 0;
+        
+        if (!monthlyData[month]) {
+          monthlyData[month] = { count: 0, revenue: 0 };
+        }
+        
+        monthlyData[month].count++;
+        monthlyData[month].revenue += revenue;
+      });
+    });
+    
+    const sorted = Object.entries(monthlyData).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 6);
+    
+    if (sorted.length === 0) {
+      return '📈 **월별 매출 데이터가 없습니다.**';
+    }
+    
+    let result = '📈 **월별 매출 추이** (최근 6개월)\n\n';
+    result += '┌───────────┬──────────┬─────────────────┐\n';
+    result += '│ 월        │ 작업건수 │ 매출            │\n';
+    result += '├───────────┼──────────┼─────────────────┤\n';
+    
+    sorted.forEach(([month, data]) => {
+      const monthStr = month.padEnd(9);
+      const count = `${data.count}건`.padEnd(8);
+      const revenue = `${data.revenue.toLocaleString()}원`.padStart(15);
+      
+      result += `│ ${monthStr} │ ${count} │ ${revenue} │\n`;
+    });
+    
+    result += '└───────────┴──────────┴─────────────────┘';
+    
+    return result;
+  },
+  
+  // 5. 업체 마감 임박
+  // 5. 매출/매입 마감 (D-3 이내)
+  getFinanceDeadlines() {
+    console.log('=== getFinanceDeadlines 시작 ===');
+    
+    if (!state.financeData || Object.keys(state.financeData).length === 0) {
+      return '📊 **매출/매입 데이터가 없습니다.**\n\n데이터를 불러오는 중이거나 아직 로드되지 않았습니다.';
+    }
+    
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    console.log('오늘 날짜:', today.toISOString().slice(0, 10));
+    
+    const upcomingFinance = [];
+    
+    // 각 타입별로 D-3 이내 데이터 수집
+    ['place', 'blog', 'project'].forEach(type => {
+      const rows = state.financeData[type] || [];
+      console.log(`${type} 데이터 개수:`, rows.length);
+      
+      rows.forEach(row => {
+        // period 필드에서 종료일 파싱 (예: "2025-10-29~2025-11-04")
+        if (!row.period || !row.period.includes('~')) {
+          console.log(`${type} - ${row.client}: period 없음 또는 형식 오류`);
+          return;
+        }
+        
+        const parts = row.period.split('~');
+        const endDateStr = parts[1]?.trim();
+        
+        if (!endDateStr) {
+          console.log(`${type} - ${row.client}: 종료일 파싱 실패`);
+          return;
+        }
+        
+        // endDate를 Date 객체로 변환
+        const [year, month, day] = endDateStr.split('-').map(Number);
+        const endDate = new Date(year, month - 1, day, 0, 0, 0, 0);
+        
+        const diffMs = endDate - today;
+        const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        
+        console.log(`${type} - ${row.client}: 종료일=${endDateStr}, D-${daysLeft}`);
+        
+        // D-3 이내
+        if (daysLeft >= 0 && daysLeft <= 3) {
+          console.log('✅ D-3 이내 발견:', row.client, `D-${daysLeft}`);
+          upcomingFinance.push({
+            client: row.client,
+            type: type,
+            endDateStr: endDateStr,
+            revenue: row.revenue,
+            cost: row.cost,
+            profit: row.profit,
+            endDateObj: endDate,
+            daysLeft: daysLeft
+          });
+        }
+      });
+    });
+    
+    console.log('필터링된 데이터 개수:', upcomingFinance.length);
+    
+    if (upcomingFinance.length === 0) {
+      return '✅ 3일 이내 마감되는 매출/매입이 없습니다.\n\n(오늘부터 3일 이내 종료되는 데이터를 표시합니다)';
+    }
+    
+    upcomingFinance.sort((a, b) => a.endDateObj - b.endDateObj);
+    
+    let result = '💰 **매출/매입 마감** (D-3 이내)\n\n';
+    result += '┌───────────────┬──────────┬───────────┬─────────────┬────────┐\n';
+    result += '│ 업체명        │ 타입     │ 종료일    │ 매출        │ D-Day  │\n';
+    result += '├───────────────┼──────────┼───────────┼─────────────┼────────┤\n';
+    
+    upcomingFinance.forEach(item => {
+      const client = (item.client || '-').substring(0, 11).padEnd(11);
+      const typeStr = (item.type === 'place' ? '플레이스' : 
+                       item.type === 'blog' ? '블로그' : '프로젝트').padEnd(8);
+      const endDate = (item.endDateStr || '-').padEnd(9);
+      const revenue = `${(item.revenue || 0).toLocaleString()}원`.padStart(11);
+      const dday = item.daysLeft === 0 ? 'D-Day' : `D-${item.daysLeft}`;
+      const ddayStr = dday.padEnd(6);
+      
+      result += `│ ${client} │ ${typeStr} │ ${endDate} │ ${revenue} │ ${ddayStr} │\n`;
+    });
+    
+    result += '└───────────────┴──────────┴───────────┴─────────────┴────────┘';
+    
+    console.log('=== 결과 완료 ===');
+    return result;
+  },
+  
+  // 명령어 도움말
+  showLocalCommands() {
+    return '💡 **사용 가능한 로컬 명령어**\n\n' +
+           '💰 이번달 매출 - 당월 매출 현황 조회\n' +
+           '⏰ 작업 마감 - 마감 임박 작업 목록 (7일)\n' +
+           '👥 담당자별 - 담당자별 매출 통계\n' +
+           '📈 월별 추이 - 최근 6개월 매출 추이\n' +
+           '💵 매출/매입 마감 - 매출/매입 마감 현황 (D-3)\n\n' +
+           '💬 명령어를 입력하거나 자연어로 질문하세요!';
+  },
+  
+  async callClaudeAPI(message) {
+    // 로컬 명령어만 사용하도록 안내
+    return '💡 **로컬 명령어를 사용해주세요**\n\n' +
+           '현재 AI 챗봇은 로컬 명령어만 지원합니다.\n\n' +
+           '사용 가능한 명령어:\n' +
+           '• 이번달 매출\n' +
+           '• 작업 마감\n' +
+           '• 담당자별\n' +
+           '• 월별 추이\n' +
+           '• 매출/매입 마감\n\n' +
+           '"도움말" 또는 "help"를 입력하면 자세한 안내를 볼 수 있습니다.';
   },
   
   getDashboardContext() {
@@ -6784,6 +7072,13 @@ const chatbot = {
     messageDiv.className = `chatbot-message ${type}`;
     messageDiv.textContent = text;
     messageDiv.style.whiteSpace = 'pre-wrap';
+    
+    // 표 형식이 포함된 경우 monospace 폰트 적용
+    if (text.includes('┌') || text.includes('│') || text.includes('─')) {
+      messageDiv.style.fontFamily = 'Monaco, "Courier New", monospace';
+      messageDiv.style.fontSize = '12px';
+      messageDiv.style.lineHeight = '1.4';
+    }
     
     messagesContainer.appendChild(messageDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
