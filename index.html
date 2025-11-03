@@ -344,25 +344,6 @@
   .growth-icon{width:70px; height:70px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:32px}
   .growth-icon.positive{background:rgba(34,197,94,0.15)}
   .growth-icon.negative{background:rgba(239,68,68,0.15)}
-
-  /* 모달 스타일 */
-  .modal{display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center}
-  .modal.active{display:flex}
-  .modal-content{background:var(--panel); border:2px solid var(--border); border-radius:20px; max-width:500px; width:90%; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow); animation:modalSlideIn 0.3s ease}
-  @keyframes modalSlideIn{from{opacity:0; transform:translateY(-30px)} to{opacity:1; transform:translateY(0)}}
-  .modal-header{padding:24px 32px; border-bottom:2px solid var(--border); display:flex; justify-content:space-between; align-items:center; background:linear-gradient(to right, rgba(99,102,241,.05), transparent)}
-  .modal-header h2{font-size:20px; font-weight:700; margin:0}
-  .modal-close{background:transparent; border:none; font-size:24px; color:var(--muted); cursor:pointer; padding:0; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:8px; transition:all .3s}
-  .modal-close:hover{background:var(--card); color:var(--text); transform:rotate(90deg)}
-  .modal-body{padding:28px 32px}
-  .modal-description{color:var(--muted); font-size:14px; line-height:1.7; margin-bottom:20px}
-  .modal-description a{color:var(--primary-light); text-decoration:none; font-weight:600}
-  .modal-description a:hover{text-decoration:underline}
-  .api-status{padding:16px; background:var(--card2); border:2px solid var(--border); border-radius:12px; display:flex; align-items:center; gap:12px}
-  .api-status.connected{border-color:var(--green); background:rgba(34,197,94,0.1)}
-  .api-status.connected .status-indicator{background:var(--green)}
-  .status-indicator{width:10px; height:10px; border-radius:50%; background:var(--muted); animation:pulse 2s infinite}
-  .status-text{font-size:14px; font-weight:600; color:var(--text)}
 </style>
 </head>
 <body>
@@ -402,42 +383,13 @@
         <button class="logout-btn" id="logoutBtn">로그아웃</button>
       </div>
       <button class="btn outline" id="exportExcelBtn">📊 엑셀 내보내기</button>
-      <button class="btn outline" id="apiSettingsBtn">⚙️ API 설정</button>
       <button class="btn" id="themeBtn">🌓 테마 전환</button>
     </div>
   </header>
 
-  <!-- API 설정 모달 -->
-  <div id="apiModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>⚙️ Claude API 설정</h2>
-        <button class="modal-close" id="apiModalClose">✕</button>
-      </div>
-      <div class="modal-body">
-        <p class="modal-description">
-          AI 챗봇 기능을 사용하려면 Claude API 키가 필요합니다.<br>
-          <a href="https://console.anthropic.com" target="_blank">Anthropic Console</a>에서 API 키를 발급받으세요.
-        </p>
-        <div class="api-status" id="apiStatus">
-          <span class="status-indicator"></span>
-          <span class="status-text">API 키가 설정되지 않음</span>
-        </div>
-        <div class="filter-group" style="margin-top: 20px;">
-          <label class="filter-label">API 키</label>
-          <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." />
-        </div>
-        <div style="display: flex; gap: 12px; margin-top: 20px;">
-          <button class="btn" id="saveApiKey">💾 저장</button>
-          <button class="btn outline reset" id="deleteApiKey">🗑️ 삭제</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="tabs">
     <div class="tab active" data-type="place">📍 플레이스 작업</div>
-    <div class="place-subtabs" id="placeSubtabs">
+    <div class="place-subtabs" id="placeSubtabs" style="display:flex; gap:8px; margin-left:12px">
       <div class="subtab active" data-subtype="reward">🎁 리워드</div>
       <div class="subtab" data-subtype="distribution">📦 배포</div>
     </div>
@@ -755,14 +707,10 @@
       
       <!-- 필터 영역 -->
       <div style="margin-bottom:24px">
-        <div class="filters" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 1fr">
+        <div class="filters" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr">
           <div class="filter-group">
             <label class="filter-label">🔍 항목명 검색</label>
             <input id="expenseSearchItem" placeholder="항목명 입력..." style="width:100%">
-          </div>
-          <div class="filter-group">
-            <label class="filter-label">👤 담당자</label>
-            <input id="expenseFilterManager" placeholder="담당자 입력..." style="width:100%">
           </div>
           <div class="filter-group">
             <label class="filter-label">📂 카테고리</label>
@@ -847,11 +795,11 @@
           <table>
             <thead>
               <tr>
+                <th class="center" style="width:40px">↕</th>
                 <th class="center"><input type="checkbox" id="chkAllExpense"></th>
-                <th class="center">담당자</th>
-                <th>항목명</th>
+                <th class="center">날짜</th>
                 <th class="center">카테고리</th>
-                <th class="center">기간</th>
+                <th>항목명</th>
                 <th class="num">금액</th>
                 <th class="center">결제방법</th>
                 <th>메모</th>
@@ -879,8 +827,10 @@
 
       <!-- 요약 정보 -->
       <div style="font-weight:700; margin-bottom:16px; font-size:16px">📊 지출 요약 (필터 적용) <span class="fin-count" id="expenseSummaryCount"></span></div>
-      <div class="kpi-summary" style="justify-content: center;">
-        <div class="kpi" style="max-width: 320px;"><div class="muted">총 지출</div><div class="v" id="totalExpense">₩0</div></div>
+      <div class="kpi-summary">
+        <div class="kpi"><div class="muted">총 지출</div><div class="v" id="totalExpense">₩0</div></div>
+        <div class="kpi"><div class="muted">월구독</div><div class="v" id="subscriptionExpense">₩0</div></div>
+        <div class="kpi"><div class="muted">월세</div><div class="v" id="rentExpense">₩0</div></div>
       </div>
 
       <div class="sep"></div>
@@ -1421,18 +1371,13 @@ function loadData(key) {
 function switchType(type) {
   const placeSubtabs = $('#placeSubtabs');
   
-  // 플레이스 탭 토글 처리: 이미 활성화되어 있을 때 서브탭만 토글
+  // 플레이스 탭 토글 처리: 이미 활성화되어 있고 서브탭이 표시 중일 때
   if (type === 'place' && state.currentType === 'place') {
-    if (placeSubtabs) {
-      if (placeSubtabs.classList.contains('show')) {
-        // 서브탭 숨김
-        placeSubtabs.classList.remove('show');
-      } else {
-        // 서브탭 표시
-        placeSubtabs.classList.add('show');
-      }
+    if (placeSubtabs && placeSubtabs.classList.contains('show')) {
+      // 서브탭 숨김
+      placeSubtabs.classList.remove('show');
+      return;
     }
-    return; // 이미 플레이스 탭이므로 나머지 처리 스킵
   }
   
   state.currentType = type;
@@ -5181,7 +5126,6 @@ function getFilteredExpenseRows() {
   const rows = state.expenseData || [];
   const filters = {
     searchItem: $('#expenseSearchItem')?.value || '',
-    filterManager: $('#expenseFilterManager')?.value || '',
     filterCategory: $('#expenseFilterCategory')?.value || '',
     filterPayment: $('#expenseFilterPayment')?.value || '',
     filterYear: $('#expenseFilterYear')?.value || '',
@@ -5195,10 +5139,6 @@ function getFilteredExpenseRows() {
     filtered = filtered.filter(r => (r.itemName || '').includes(filters.searchItem));
   }
   
-  if (filters.filterManager) {
-    filtered = filtered.filter(r => (r.manager || '').includes(filters.filterManager));
-  }
-  
   if (filters.filterCategory) {
     filtered = filtered.filter(r => r.category === filters.filterCategory);
   }
@@ -5208,23 +5148,22 @@ function getFilteredExpenseRows() {
   }
   
   if (filters.filterYear) {
-    filtered = filtered.filter(r => (r.startDate || r.endDate || '').startsWith(filters.filterYear));
+    filtered = filtered.filter(r => (r.date || '').startsWith(filters.filterYear));
   }
   
   if (filters.selectedMonth) {
     const monthNum = filters.selectedMonth.replace('월', '');
     filtered = filtered.filter(r => {
-      const dateToCheck = r.startDate || r.endDate;
-      if (!dateToCheck) return false;
-      const [y, m] = dateToCheck.split('-');
+      if (!r.date) return false;
+      const [y, m] = r.date.split('-');
       return parseInt(m) === parseInt(monthNum);
     });
   }
   
   if (filters.sortOrder === 'date_desc') {
-    filtered.sort((a, b) => (b.startDate || b.endDate || '').localeCompare(a.startDate || a.endDate || ''));
+    filtered.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   } else if (filters.sortOrder === 'date_asc') {
-    filtered.sort((a, b) => (a.startDate || a.endDate || '').localeCompare(b.startDate || b.endDate || ''));
+    filtered.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
   } else if (filters.sortOrder === 'amount_desc') {
     filtered.sort((a, b) => (b.amount || 0) - (a.amount || 0));
   } else if (filters.sortOrder === 'amount_asc') {
@@ -5278,15 +5217,16 @@ function renderExpenseTable() {
   
   rows.forEach((row, rowIndex) => {
     const tr = document.createElement('tr');
+    tr.draggable = true;
     tr.dataset.rowId = row.id;
     tr.dataset.rowIndex = rowIndex;
     
     tr.innerHTML = `
+      <td class="center" style="width:40px"><span class="drag-handle">☰</span></td>
       <td class="center"><input type="checkbox" class="expense-check" data-id="${row.id}"></td>
-      <td class="fin-cell center" data-id="${row.id}" data-field="manager">${row.manager || ''}</td>
-      <td class="fin-cell nowrap" data-id="${row.id}" data-field="itemName">${row.itemName || ''}</td>
+      <td class="fin-cell center" data-id="${row.id}" data-field="date">${row.date || ''}</td>
       <td class="fin-cell center" data-id="${row.id}" data-field="category">${row.category || ''}</td>
-      <td class="fin-cell center nowrap" data-id="${row.id}" data-field="period">${(row.startDate && row.endDate) ? `${row.startDate}~${row.endDate}` : (row.startDate || row.endDate || '')}</td>
+      <td class="fin-cell nowrap" data-id="${row.id}" data-field="itemName">${row.itemName || ''}</td>
       <td class="fin-cell num cost-cell" data-id="${row.id}" data-field="amount">${fmtMoney(row.amount || 0)}</td>
       <td class="fin-cell center" data-id="${row.id}" data-field="paymentMethod">${row.paymentMethod || ''}</td>
       <td class="fin-cell" data-id="${row.id}" data-field="memo">${row.memo || ''}</td>
@@ -5451,16 +5391,25 @@ function calculateExpenseSummary() {
   const rows = getFilteredExpenseRows();
   
   let totalExpense = 0;
+  let subscriptionExpense = 0;
+  let rentExpense = 0;
   
   rows.forEach(row => {
     const amount = row.amount || 0;
     totalExpense += amount;
+    
+    if (row.category === '월구독') subscriptionExpense += amount;
+    if (row.category === '월세') rentExpense += amount;
   });
   
   const totalEl = $('#totalExpense');
+  const subscriptionEl = $('#subscriptionExpense');
+  const rentEl = $('#rentExpense');
   const summaryCountEl = $('#expenseSummaryCount');
   
   if (totalEl) totalEl.textContent = fmtMoney(totalExpense);
+  if (subscriptionEl) subscriptionEl.textContent = fmtMoney(subscriptionExpense);
+  if (rentEl) rentEl.textContent = fmtMoney(rentExpense);
   if (summaryCountEl) {
     summaryCountEl.textContent = `(총 ${rows.length}개 항목)`;
     summaryCountEl.style.color = 'var(--primary-light)';
@@ -5474,9 +5423,8 @@ function renderExpenseChart() {
   const rows = getFilteredExpenseRows();
   
   rows.forEach(row => {
-    const dateToUse = row.startDate || row.endDate;
-    if (!dateToUse) return;
-    const [year, month] = dateToUse.split('-');
+    if (!row.date) return;
+    const [year, month] = row.date.split('-');
     const yearMonth = `${year}-${month}`;
     const amount = parseNum(row.amount) || 0;
     monthlyData[yearMonth] = (monthlyData[yearMonth] || 0) + amount;
@@ -5516,12 +5464,6 @@ function setupExpenseEventListeners() {
   if (searchItem) {
     searchItem.removeEventListener('input', handleExpenseFilterChange);
     searchItem.addEventListener('input', handleExpenseFilterChange);
-  }
-  
-  const filterManager = $('#expenseFilterManager');
-  if (filterManager) {
-    filterManager.removeEventListener('input', handleExpenseFilterChange);
-    filterManager.addEventListener('input', handleExpenseFilterChange);
   }
   
   const filterCategory = $('#expenseFilterCategory');
@@ -5576,7 +5518,6 @@ function handleExpenseFilterChange() {
 
 function handleExpenseReset() {
   const searchItem = $('#expenseSearchItem');
-  const filterManager = $('#expenseFilterManager');
   const filterCategory = $('#expenseFilterCategory');
   const filterPayment = $('#expenseFilterPayment');
   const filterYear = $('#expenseFilterYear');
@@ -5584,7 +5525,6 @@ function handleExpenseReset() {
   const sortOrder = $('#expenseSortOrder');
   
   if (searchItem) searchItem.value = '';
-  if (filterManager) filterManager.value = '';
   if (filterCategory) filterCategory.value = '';
   if (filterPayment) filterPayment.value = '';
   if (filterYear) filterYear.value = '';
@@ -5615,12 +5555,6 @@ function startExpenseEdit(cell, id, field) {
   let input;
   
   const isNumber = field === 'amount';
-  
-  if (field === 'period') {
-    // 기간 필드는 모달로 편집
-    openPeriodEditModal(row);
-    return;
-  }
   
   if (field === 'category') {
     input = document.createElement('select');
@@ -5693,89 +5627,6 @@ function startExpenseEdit(cell, id, field) {
   input.addEventListener('blur', commit);
 }
 
-function openPeriodEditModal(row) {
-  const modal = document.createElement('div');
-  modal.className = 'modal-back active';
-  
-  const content_div = document.createElement('div');
-  content_div.className = 'modal';
-  content_div.style.maxWidth = '420px';
-  
-  content_div.innerHTML = `
-    <div class="mh" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 16px 16px 0 0; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between;">
-      <strong style="font-size: 18px; display: flex; align-items: center; gap: 10px;">
-        📅 작업기간 설정
-      </strong>
-      <button class="btn small outline" id="closePeriodModal" style="background: rgba(255,255,255,0.2); border: none; color: white;">✕</button>
-    </div>
-    <div class="mb" style="padding: 32px 24px;">
-      <div style="display: grid; gap: 20px;">
-        <div>
-          <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--text);">시작일</label>
-          <input type="date" id="periodStartDate" value="${row.startDate || ''}" style="width: 100%; padding: 14px; border-radius: 10px; border: 2px solid var(--border); background: var(--card); color: var(--text); font-size: 15px;">
-        </div>
-        <div>
-          <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--text);">종료일</label>
-          <input type="date" id="periodEndDate" value="${row.endDate || ''}" style="width: 100%; padding: 14px; border-radius: 10px; border: 2px solid var(--border); background: var(--card); color: var(--text); font-size: 15px;">
-        </div>
-      </div>
-      <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 28px;">
-        <button class="btn outline" id="periodCancelBtn" style="padding: 12px 24px;">취소</button>
-        <button class="btn" id="periodApplyBtn" style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">적용</button>
-      </div>
-    </div>
-  `;
-  
-  modal.appendChild(content_div);
-  document.body.appendChild(modal);
-  
-  const closeModal = () => {
-    if (document.body.contains(modal)) document.body.removeChild(modal);
-  };
-  
-  $('#closePeriodModal')?.addEventListener('click', closeModal);
-  $('#periodCancelBtn')?.addEventListener('click', closeModal);
-  
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
-  });
-  
-  $('#periodApplyBtn')?.addEventListener('click', () => {
-    const startDate = $('#periodStartDate')?.value || '';
-    const endDate = $('#periodEndDate')?.value || '';
-    
-    row.startDate = startDate;
-    row.endDate = endDate;
-    
-    saveExpenseData(row);
-    renderExpenses();
-    closeModal();
-  });
-  
-  // 엔터키로 적용
-  const startInput = $('#periodStartDate');
-  const endInput = $('#periodEndDate');
-  
-  if (startInput) {
-    startInput.focus();
-    startInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        endInput?.focus();
-      }
-    });
-  }
-  
-  if (endInput) {
-    endInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        $('#periodApplyBtn')?.click();
-      }
-    });
-  }
-}
-
 function openExpenseAddModal() {
   const modal = document.createElement('div');
   modal.className = 'modal-back active';
@@ -5794,8 +5645,8 @@ function openExpenseAddModal() {
     <div class="mb">
       <form id="expenseAddForm" class="form-grid">
         <div>
-          <label>담당자</label>
-          <input type="text" id="expenseManager">
+          <label>날짜 *</label>
+          <input type="date" id="expenseDate" required value="${currentDate}">
         </div>
         <div>
           <label>카테고리 *</label>
@@ -5813,17 +5664,6 @@ function openExpenseAddModal() {
         <div style="grid-column: 1/-1">
           <label>항목명 *</label>
           <input type="text" id="expenseItemName" required>
-        </div>
-        <div style="grid-column: 1/-1">
-          <label>작업기간</label>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <input type="date" id="expenseStartDate" value="${currentDate}" style="flex: 1;">
-            <span style="color: var(--muted);">~</span>
-            <input type="date" id="expenseEndDate" style="flex: 1;">
-            <button type="button" class="btn small" id="openPeriodModalBtn" style="white-space: nowrap; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-              📅 기간설정
-            </button>
-          </div>
         </div>
         <div>
           <label>금액 *</label>
@@ -5866,102 +5706,8 @@ function openExpenseAddModal() {
   content_div.querySelector('#expenseResetFormBtn')?.addEventListener('click', () => {
     const form = $('#expenseAddForm');
     if (form) form.reset();
-    const startDateInput = $('#expenseStartDate');
-    if (startDateInput) startDateInput.value = currentDate;
-  });
-  
-  content_div.querySelector('#openPeriodModalBtn')?.addEventListener('click', () => {
-    // 임시 row 객체 생성
-    const tempRow = {
-      startDate: $('#expenseStartDate')?.value || '',
-      endDate: $('#expenseEndDate')?.value || ''
-    };
-    
-    // 기존 모달 닫기
-    const originalModal = modal;
-    
-    // 기간 설정 모달 열기 (수정 버전)
-    const periodModal = document.createElement('div');
-    periodModal.className = 'modal-back active';
-    
-    const periodContent = document.createElement('div');
-    periodContent.className = 'modal';
-    periodContent.style.maxWidth = '420px';
-    
-    periodContent.innerHTML = `
-      <div class="mh" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 16px 16px 0 0; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between;">
-        <strong style="font-size: 18px; display: flex; align-items: center; gap: 10px;">
-          📅 작업기간 설정
-        </strong>
-        <button class="btn small outline" id="closePeriodModal2" style="background: rgba(255,255,255,0.2); border: none; color: white;">✕</button>
-      </div>
-      <div class="mb" style="padding: 32px 24px;">
-        <div style="display: grid; gap: 20px;">
-          <div>
-            <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--text);">시작일</label>
-            <input type="date" id="periodStartDate2" value="${tempRow.startDate}" style="width: 100%; padding: 14px; border-radius: 10px; border: 2px solid var(--border); background: var(--card); color: var(--text); font-size: 15px;">
-          </div>
-          <div>
-            <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--text);">종료일</label>
-            <input type="date" id="periodEndDate2" value="${tempRow.endDate}" style="width: 100%; padding: 14px; border-radius: 10px; border: 2px solid var(--border); background: var(--card); color: var(--text); font-size: 15px;">
-          </div>
-        </div>
-        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 28px;">
-          <button class="btn outline" id="periodCancelBtn2" style="padding: 12px 24px;">취소</button>
-          <button class="btn" id="periodApplyBtn2" style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">적용</button>
-        </div>
-      </div>
-    `;
-    
-    periodModal.appendChild(periodContent);
-    document.body.appendChild(periodModal);
-    
-    const closePeriodModal = () => {
-      if (document.body.contains(periodModal)) document.body.removeChild(periodModal);
-    };
-    
-    $('#closePeriodModal2')?.addEventListener('click', closePeriodModal);
-    $('#periodCancelBtn2')?.addEventListener('click', closePeriodModal);
-    
-    periodModal.addEventListener('click', (e) => {
-      if (e.target === periodModal) closePeriodModal();
-    });
-    
-    $('#periodApplyBtn2')?.addEventListener('click', () => {
-      const startDate = $('#periodStartDate2')?.value || '';
-      const endDate = $('#periodEndDate2')?.value || '';
-      
-      // 원래 모달의 input에 값 설정
-      const startInput = $('#expenseStartDate');
-      const endInput = $('#expenseEndDate');
-      if (startInput) startInput.value = startDate;
-      if (endInput) endInput.value = endDate;
-      
-      closePeriodModal();
-    });
-    
-    // 엔터키로 적용
-    const startInput = $('#periodStartDate2');
-    const endInput = $('#periodEndDate2');
-    
-    if (startInput) {
-      startInput.focus();
-      startInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          endInput?.focus();
-        }
-      });
-    }
-    
-    if (endInput) {
-      endInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          $('#periodApplyBtn2')?.click();
-        }
-      });
-    }
+    const dateInput = $('#expenseDate');
+    if (dateInput) dateInput.value = currentDate;
   });
   
   const form = $('#expenseAddForm');
@@ -5972,11 +5718,9 @@ function openExpenseAddModal() {
       const data = {
         id: 'expense_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9),
         createdAt: new Date().toISOString(),
-        manager: $('#expenseManager')?.value || '',
+        date: $('#expenseDate')?.value || '',
         category: $('#expenseCategory')?.value || '',
         itemName: $('#expenseItemName')?.value || '',
-        startDate: $('#expenseStartDate')?.value || '',
-        endDate: $('#expenseEndDate')?.value || '',
         amount: parseNum($('#expenseAmount')?.value) || 0,
         paymentMethod: $('#expensePayment')?.value || '',
         memo: $('#expenseMemo')?.value || ''
@@ -6015,10 +5759,6 @@ function openExpenseBulkEditModal() {
         </p>
       </div>
       <form id="expenseBulkEditForm" class="form-grid">
-        <div>
-          <label>담당자</label>
-          <input type="text" id="bulkExpenseManager" placeholder="변경할 담당자">
-        </div>
         <div>
           <label>카테고리</label>
           <select id="bulkExpenseCategory">
@@ -6067,12 +5807,11 @@ function openExpenseBulkEditModal() {
   $('#expenseBulkEditForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
     
-    const bulkManager = $('#bulkExpenseManager')?.value;
     const bulkCategory = $('#bulkExpenseCategory')?.value;
     const bulkPayment = $('#bulkExpensePayment')?.value;
     const bulkMemoAppend = $('#bulkExpenseMemoAppend')?.value;
     
-    if (!bulkManager && !bulkCategory && !bulkPayment && !bulkMemoAppend) {
+    if (!bulkCategory && !bulkPayment && !bulkMemoAppend) {
       alert('변경할 항목을 선택해주세요.');
       return;
     }
@@ -6086,7 +5825,6 @@ function openExpenseBulkEditModal() {
     state.expenseSelected.forEach(id => {
       const row = state.expenseData.find(r => r.id === id);
       if (row) {
-        if (bulkManager) row.manager = bulkManager;
         if (bulkCategory) row.category = bulkCategory;
         if (bulkPayment) row.paymentMethod = bulkPayment;
         if (bulkMemoAppend) {
@@ -6635,7 +6373,7 @@ if (document.readyState === 'loading') {
 const chatbot = {
   isOpen: false,
   messages: [],
-  apiKey: localStorage.getItem('claude_api_key') || '', // localStorage에서 API 키 가져오기
+  apiKey: '', // Claude API 키 (사용자가 설정해야 함)
   
   init() {
     console.log('챗봇 초기화 시작...');
@@ -7044,161 +6782,6 @@ if (document.readyState === 'loading') {
 } else {
   chatbot.init();
 }
-
-// API 설정 기능
-const apiSettings = {
-  init() {
-    const settingsBtn = $('#apiSettingsBtn');
-    const modal = $('#apiModal');
-    const closeBtn = $('#apiModalClose');
-    const saveBtn = $('#saveApiKey');
-    const deleteBtn = $('#deleteApiKey');
-    const input = $('#apiKeyInput');
-    
-    if (!settingsBtn || !modal) return;
-    
-    // 설정 버튼 클릭
-    settingsBtn.addEventListener('click', () => {
-      this.openModal();
-    });
-    
-    // 모달 닫기
-    closeBtn?.addEventListener('click', () => {
-      this.closeModal();
-    });
-    
-    // 모달 바깥 클릭시 닫기
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        this.closeModal();
-      }
-    });
-    
-    // 저장 버튼
-    saveBtn?.addEventListener('click', () => {
-      this.saveApiKey();
-    });
-    
-    // 삭제 버튼
-    deleteBtn?.addEventListener('click', () => {
-      this.deleteApiKey();
-    });
-    
-    // Enter 키로 저장
-    input?.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        this.saveApiKey();
-      }
-    });
-  },
-  
-  openModal() {
-    const modal = $('#apiModal');
-    const input = $('#apiKeyInput');
-    
-    if (modal) {
-      modal.classList.add('active');
-      this.updateStatus();
-      
-      // 현재 저장된 키가 있으면 마스킹해서 표시
-      const savedKey = localStorage.getItem('claude_api_key');
-      if (savedKey && input) {
-        input.value = savedKey.substring(0, 12) + '••••••••';
-        input.setAttribute('placeholder', '새 API 키를 입력하거나 기존 키 유지');
-      }
-    }
-  },
-  
-  closeModal() {
-    const modal = $('#apiModal');
-    const input = $('#apiKeyInput');
-    
-    if (modal) {
-      modal.classList.remove('active');
-    }
-    if (input) {
-      input.value = '';
-    }
-  },
-  
-  saveApiKey() {
-    const input = $('#apiKeyInput');
-    const apiKey = input?.value.trim();
-    
-    if (!apiKey) {
-      alert('API 키를 입력해주세요.');
-      return;
-    }
-    
-    // 마스킹된 값이면 저장 안함
-    if (apiKey.includes('••••')) {
-      alert('기존 API 키가 유지됩니다.');
-      this.closeModal();
-      return;
-    }
-    
-    // API 키 형식 검증 (sk-ant-api로 시작)
-    if (!apiKey.startsWith('sk-ant-api')) {
-      alert('올바른 Claude API 키 형식이 아닙니다.\n(sk-ant-api로 시작해야 합니다)');
-      return;
-    }
-    
-    // localStorage에 저장
-    localStorage.setItem('claude_api_key', apiKey);
-    
-    // chatbot 객체의 apiKey도 업데이트
-    if (chatbot) {
-      chatbot.apiKey = apiKey;
-    }
-    
-    alert('✅ API 키가 저장되었습니다!\n이제 AI 챗봇 기능을 사용할 수 있습니다.');
-    this.updateStatus();
-    this.closeModal();
-  },
-  
-  deleteApiKey() {
-    if (!confirm('정말로 API 키를 삭제하시겠습니까?')) {
-      return;
-    }
-    
-    localStorage.removeItem('claude_api_key');
-    
-    // chatbot 객체의 apiKey도 초기화
-    if (chatbot) {
-      chatbot.apiKey = '';
-    }
-    
-    alert('🗑️ API 키가 삭제되었습니다.');
-    this.updateStatus();
-    this.closeModal();
-  },
-  
-  updateStatus() {
-    const statusEl = $('#apiStatus');
-    const statusText = statusEl?.querySelector('.status-text');
-    const apiKey = localStorage.getItem('claude_api_key');
-    
-    if (statusEl && statusText) {
-      if (apiKey) {
-        statusEl.classList.add('connected');
-        statusText.textContent = `✅ API 키 설정됨 (${apiKey.substring(0, 12)}...)`;
-      } else {
-        statusEl.classList.remove('connected');
-        statusText.textContent = '❌ API 키가 설정되지 않음';
-      }
-    }
-  }
-};
-
-// API 설정 초기화
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    apiSettings.init();
-  });
-} else {
-  apiSettings.init();
-}
-
 </script>
 
 </body>
