@@ -539,10 +539,10 @@
           <div class="filter-group">
             <label class="filter-label">🔄 정렬</label>
             <select id="finSortOrder">
-              <option value="startdate_asc">🗓️ 시작일 ↑</option>
               <option value="startdate_desc">🗓️ 시작일 ↓</option>
-              <option value="enddate_asc">📅 종료일 ↑</option>
+              <option value="startdate_asc">🗓️ 시작일 ↑</option>
               <option value="enddate_desc">📅 종료일 ↓</option>
+              <option value="enddate_asc">📅 종료일 ↑</option>
               <option value="dday_d0">⚠️ D-0</option>
               <option value="dday_d7">📌 D-7 이내</option>
               <option value="order_asc">📝 등록순</option>
@@ -3331,7 +3331,7 @@ function getFilteredFinanceRows(type) {
     filterYear: $('#finFilterYear')?.value || '',
     selectedMonth: $('#financeMonth')?.value || '',
     contractStatus: $('#contractStatus')?.value || '',
-    sortOrder: $('#finSortOrder')?.value || 'startdate_asc'
+    sortOrder: $('#finSortOrder')?.value || 'startdate_desc'
   };
   
   let filtered = rows.slice();
@@ -3744,7 +3744,7 @@ function handleFinReset() {
   if (finFilterYear) finFilterYear.value = '';
   if (financeMonth) financeMonth.value = '';
   if (contractStatus) contractStatus.value = '';
-  if (finSortOrder) finSortOrder.value = 'startdate_asc';
+  if (finSortOrder) finSortOrder.value = 'startdate_desc';
   
   if (state.currentType === 'finance') renderFinance();
 }
@@ -6169,7 +6169,7 @@ function initApp() {
       if (finFilterYear) finFilterYear.value = '';
       if (financeMonth) financeMonth.value = '';
       if (contractStatus) contractStatus.value = '';
-      if (finSortOrder) finSortOrder.value = 'startdate_asc';
+      if (finSortOrder) finSortOrder.value = 'startdate_desc';
       if (state.currentType === 'finance') renderFinance();
     });
   }
