@@ -389,7 +389,7 @@
 
   <div class="tabs">
     <div class="tab active" data-type="place">📍 플레이스 작업</div>
-    <div class="place-subtabs" id="placeSubtabs" style="display:flex; gap:8px; margin-left:12px">
+    <div class="place-subtabs" id="placeSubtabs" style="display:none; gap:8px; margin-left:12px">
       <div class="subtab active" data-subtype="reward">🎁 리워드</div>
       <div class="subtab" data-subtype="distribution">📦 배포</div>
     </div>
@@ -539,13 +539,15 @@
           <div class="filter-group">
             <label class="filter-label">🔄 정렬</label>
             <select id="finSortOrder">
+              <option value="startdate_asc">🗓️ 시작일 ↑</option>
+              <option value="startdate_desc">🗓️ 시작일 ↓</option>
+              <option value="enddate_asc">📅 종료일 ↑</option>
+              <option value="enddate_desc">📅 종료일 ↓</option>
+              <option value="dday_d0">⚠️ D-0</option>
+              <option value="dday_d7">📌 D-7 이내</option>
               <option value="order_asc">📝 등록순</option>
               <option value="created_desc">📆 등록일 ↓</option>
               <option value="created_asc">📆 등록일 ↑</option>
-              <option value="startdate_desc">🗓️ 시작일 ↓</option>
-              <option value="startdate_asc">🗓️ 시작일 ↑</option>
-              <option value="enddate_desc">📅 종료일 ↓</option>
-              <option value="enddate_asc">📅 종료일 ↑</option>
               <option value="revenue_desc">💰 매출 ↓</option>
               <option value="revenue_asc">💰 매출 ↑</option>
               <option value="profit_desc">💵 이익 ↓</option>
@@ -1371,13 +1373,17 @@ function loadData(key) {
 function switchType(type) {
   const placeSubtabs = $('#placeSubtabs');
   
-  // 플레이스 탭 토글 처리: 이미 활성화되어 있고 서브탭이 표시 중일 때
+  // 플레이스 탭 토글 처리: 이미 활성화되어 있을 때
   if (type === 'place' && state.currentType === 'place') {
-    if (placeSubtabs && placeSubtabs.classList.contains('show')) {
-      // 서브탭 숨김
-      placeSubtabs.classList.remove('show');
-      return;
+    if (placeSubtabs) {
+      // 서브탭 토글
+      if (placeSubtabs.classList.contains('show')) {
+        placeSubtabs.classList.remove('show');
+      } else {
+        placeSubtabs.classList.add('show');
+      }
     }
+    return;
   }
   
   state.currentType = type;
@@ -1390,11 +1396,8 @@ function switchType(type) {
   
   // 플레이스 서브탭 표시/숨김
   if (placeSubtabs) {
-    if (type === 'place') {
-      placeSubtabs.classList.add('show');
-    } else {
-      placeSubtabs.classList.remove('show');
-    }
+    // 모든 탭 전환 시 서브탭 숨김
+    placeSubtabs.classList.remove('show');
   }
   
   // 특이사항 버튼 표시/숨김
@@ -1490,7 +1493,8 @@ function applyFilters(rows) {
       const dday = getDDay(r.endDate);
       if (dday === null) return false;
       
-      if (f.dday === 'd0') return dday <= 0;
+      if (f.dday === 'expired') return dday < 0;
+      if (f.dday === 'd0') return dday === 0;
       if (f.dday === 'd1') return dday >= 0 && dday <= 1;
       if (f.dday === 'd3') return dday >= 0 && dday <= 3;
       if (f.dday === 'd7') return dday >= 0 && dday <= 7;
@@ -1508,7 +1512,7 @@ function applyFilters(rows) {
     });
   }
   
-  const [sf, dir] = (f.sort || 'order_asc').split('_');
+  const [sf, dir] = (f.sort || 'date_desc').split('_');
   const mul = dir === 'asc' ? 1 : -1;
   arr.sort((a, b) => {
     if (sf === 'order') {
@@ -1878,7 +1882,8 @@ function renderFilters() {
       <label class="filter-label">⏰ 종료일</label>
       <select id="fdday">
         <option value="" ${!f.dday?'selected':''}>전체</option>
-        <option value="d0" ${f.dday==='d0'?'selected':''}>⚠️ 종료/D-0</option>
+        <option value="expired" ${f.dday==='expired'?'selected':''}>✅ 종료</option>
+        <option value="d0" ${f.dday==='d0'?'selected':''}>⚠️ D-0</option>
         <option value="d1" ${f.dday==='d1'?'selected':''}>🔔 D-1 이내</option>
         <option value="d3" ${f.dday==='d3'?'selected':''}>📌 D-3 이내</option>
         <option value="d7" ${f.dday==='d7'?'selected':''}>📅 D-7 이내</option>
@@ -1892,9 +1897,9 @@ function renderFilters() {
     <div class="filter-group">
       <label class="filter-label">🔄 정렬</label>
       <select id="fsort">
-        <option value="order_asc" ${!f.sort||f.sort==='order_asc'?'selected':''}>📝 등록순</option>
-        <option value="date_desc" ${f.sort==='date_desc'?'selected':''}>📆 최신순</option>
+        <option value="date_desc" ${!f.sort||f.sort==='date_desc'?'selected':''}>📆 최신순</option>
         <option value="date_asc" ${f.sort==='date_asc'?'selected':''}>📆 오래된순</option>
+        <option value="order_asc" ${f.sort==='order_asc'?'selected':''}>📝 등록순</option>
         <option value="cost_desc" ${f.sort==='cost_desc'?'selected':''}>💰 ${sortLabel} 높은순</option>
         <option value="cost_asc" ${f.sort==='cost_asc'?'selected':''}>💰 ${sortLabel} 낮은순</option>
       </select>
@@ -3326,7 +3331,7 @@ function getFilteredFinanceRows(type) {
     filterYear: $('#finFilterYear')?.value || '',
     selectedMonth: $('#financeMonth')?.value || '',
     contractStatus: $('#contractStatus')?.value || '',
-    sortOrder: $('#finSortOrder')?.value || 'order_asc'
+    sortOrder: $('#finSortOrder')?.value || 'startdate_asc'
   };
   
   let filtered = rows.slice();
@@ -3412,6 +3417,40 @@ function getFilteredFinanceRows(type) {
     filtered.sort((a, b) => (b.profit || 0) - (a.profit || 0));
   } else if (filters.sortOrder === 'profit_asc') {
     filtered.sort((a, b) => (a.profit || 0) - (b.profit || 0));
+  } else if (filters.sortOrder === 'dday_d0') {
+    // D-0 필터링 (오늘 종료)
+    filtered = filtered.filter(r => {
+      if (!r.period || !r.period.includes('~')) return false;
+      const endDate = r.period.split('~')[1]?.trim();
+      if (!endDate) return false;
+      const dday = getDDay(endDate);
+      return dday === 0;
+    });
+    // 종료일 기준으로 정렬
+    filtered.sort((a, b) => {
+      const getEndDate = (row) => {
+        if (!row.period || !row.period.includes('~')) return '';
+        return row.period.split('~')[1]?.trim() || '';
+      };
+      return (getEndDate(a) || '').localeCompare(getEndDate(b) || '');
+    });
+  } else if (filters.sortOrder === 'dday_d7') {
+    // D-7 이내 필터링
+    filtered = filtered.filter(r => {
+      if (!r.period || !r.period.includes('~')) return false;
+      const endDate = r.period.split('~')[1]?.trim();
+      if (!endDate) return false;
+      const dday = getDDay(endDate);
+      return dday !== null && dday >= 0 && dday <= 7;
+    });
+    // 종료일 기준으로 정렬
+    filtered.sort((a, b) => {
+      const getEndDate = (row) => {
+        if (!row.period || !row.period.includes('~')) return '';
+        return row.period.split('~')[1]?.trim() || '';
+      };
+      return (getEndDate(a) || '').localeCompare(getEndDate(b) || '');
+    });
   }
   
   return filtered;
@@ -3705,7 +3744,7 @@ function handleFinReset() {
   if (finFilterYear) finFilterYear.value = '';
   if (financeMonth) financeMonth.value = '';
   if (contractStatus) contractStatus.value = '';
-  if (finSortOrder) finSortOrder.value = '';
+  if (finSortOrder) finSortOrder.value = 'startdate_asc';
   
   if (state.currentType === 'finance') renderFinance();
 }
@@ -5897,11 +5936,6 @@ function initApp() {
     });
   });
   
-  const placeSubtabs = $('#placeSubtabs');
-  if (placeSubtabs) {
-    placeSubtabs.classList.remove('show');
-  }
-  
   // 구매내역관리 이벤트 리스너 추가
   const openExpenseAddModalBtn = $('#openExpenseAddModalBtn');
   if (openExpenseAddModalBtn) {
@@ -6135,7 +6169,7 @@ function initApp() {
       if (finFilterYear) finFilterYear.value = '';
       if (financeMonth) financeMonth.value = '';
       if (contractStatus) contractStatus.value = '';
-      if (finSortOrder) finSortOrder.value = '';
+      if (finSortOrder) finSortOrder.value = 'startdate_asc';
       if (state.currentType === 'finance') renderFinance();
     });
   }
