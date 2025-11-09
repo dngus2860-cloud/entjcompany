@@ -1035,7 +1035,7 @@ const CONFIGS = {
       {key:'unitPrice', label:'단가', type:'number'},
       {key:'totalQty', label:'총량', type:'computed'},
       {key:'cost', label:'작업비', type:'computed'},
-      {key:'tax', label:'세금', type:'select', options:['발행','미발행']},
+      {key:'tax', label:'입금', type:'select', options:['입금완료','미완료']},
       {key:'note', label:'비고', type:'text'}
     ],
     distributionFields: [
@@ -1051,7 +1051,7 @@ const CONFIGS = {
       {key:'keywords', label:'키워드', type:'text'},
       {key:'workPeriod', label:'작업기간', type:'dateRange'},
       {key:'cost', label:'작업비', type:'computed'},
-      {key:'tax', label:'세금', type:'select', options:['발행','미발행']},
+      {key:'tax', label:'입금', type:'select', options:['입금완료','미완료']},
       {key:'note', label:'비고', type:'text'}
     ],
     get fields() {
@@ -1065,6 +1065,7 @@ const CONFIGS = {
     fields: [
       {key:'manager', label:'담당자', type:'select', options:['전병황', '강태우', '오영은', '김하늬', '김우현', '공민경']},
       {key:'product', label:'상품', type:'text'},
+      {key:'author', label:'작가', type:'text'},
       {key:'category', label:'구분', type:'select', options:['블로그리뷰','단순배포','건바이','월보장','일반형','프리미엄형']},
       {key:'client', label:'업체명', type:'text', required:true},
       {key:'mid', label:'Mid', type:'url'},
@@ -1073,7 +1074,7 @@ const CONFIGS = {
       {key:'totalQty', label:'총량', type:'number'},
       {key:'unitPrice', label:'단가', type:'number'},
       {key:'cost', label:'작업비', type:'computed'},
-      {key:'tax', label:'세금', type:'select', options:['발행','미발행']},
+      {key:'tax', label:'입금', type:'select', options:['입금완료','미완료']},
       {key:'note', label:'비고', type:'text'}
     ]
   },
