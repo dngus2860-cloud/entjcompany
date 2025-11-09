@@ -2079,12 +2079,72 @@ function renderTable() {
         } else if (f.key === 'cost') {
           td.textContent = fmtMoney(row.cost || 0);
           td.className = 'num';
+          // 작업비 기재 상태에 따라 색깔 구분 (클릭하여 토글 가능)
+          if (row.costRecorded === true) {
+            td.style.color = '#22c55e'; // 초록색: 기재 완료
+            td.style.fontWeight = '700';
+          } else {
+            td.style.color = '#ef4444'; // 빨간색: 기재 안함
+            td.style.fontWeight = '700';
+          }
+          // 클릭하면 상태 토글
+          td.style.cursor = 'pointer';
+          td.title = '클릭하여 기재 상태 변경';
+          td.addEventListener('click', async () => {
+            row.costRecorded = !row.costRecorded;
+            // 색깔 즉시 업데이트
+            if (row.costRecorded) {
+              td.style.color = '#22c55e'; // 초록색
+            } else {
+              td.style.color = '#ef4444'; // 빨간색
+            }
+            // Firebase 업데이트
+            if (row.id) {
+              try {
+                await firebase.database().ref(`${config.path}/${row.id}`).update({
+                  costRecorded: row.costRecorded
+                });
+              } catch (err) {
+                console.error('Failed to update costRecorded:', err);
+              }
+            }
+          });
         } else if (f.key === 'days') {
           td.textContent = row.days || '';
           td.className = 'num';
         } else if (f.key === 'totalSpent') {
           td.textContent = fmtMoney(row.totalSpent || 0);
           td.className = 'num';
+          // 총 지출비 기재 상태에 따라 색깔 구분 (클릭하여 토글 가능)
+          if (row.costRecorded === true) {
+            td.style.color = '#22c55e'; // 초록색: 기재 완료
+            td.style.fontWeight = '700';
+          } else {
+            td.style.color = '#ef4444'; // 빨간색: 기재 안함
+            td.style.fontWeight = '700';
+          }
+          // 클릭하면 상태 토글
+          td.style.cursor = 'pointer';
+          td.title = '클릭하여 기재 상태 변경';
+          td.addEventListener('click', async () => {
+            row.costRecorded = !row.costRecorded;
+            // 색깔 즉시 업데이트
+            if (row.costRecorded) {
+              td.style.color = '#22c55e'; // 초록색
+            } else {
+              td.style.color = '#ef4444'; // 빨간색
+            }
+            // Firebase 업데이트
+            if (row.id) {
+              try {
+                await firebase.database().ref(`${config.path}/${row.id}`).update({
+                  costRecorded: row.costRecorded
+                });
+              } catch (err) {
+                console.error('Failed to update costRecorded:', err);
+              }
+            }
+          });
         }
       } else if (f.type === 'dateRange') {
         // 작업기간 표시 (시작일~종료일)
