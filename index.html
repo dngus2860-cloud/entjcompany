@@ -722,11 +722,13 @@
             <select id="expenseFilterCategory">
               <option value="">전체</option>
               <option value="월구독">월구독</option>
+              <option value="년구독">년구독</option>
               <option value="구입">구입</option>
               <option value="월세">월세</option>
               <option value="공과금">공과금</option>
               <option value="보험">보험</option>
               <option value="급여">급여</option>
+              <option value="교육비">교육비</option>
               <option value="기타">기타</option>
             </select>
           </div>
@@ -5664,11 +5666,13 @@ function startExpenseEdit(cell, id, field) {
     input.innerHTML = `
       <option value="">선택</option>
       <option value="월구독">월구독</option>
+      <option value="년구독">년구독</option>
       <option value="구입">구입</option>
       <option value="월세">월세</option>
       <option value="공과금">공과금</option>
       <option value="보험">보험</option>
       <option value="급여">급여</option>
+      <option value="교육비">교육비</option>
       <option value="기타">기타</option>
     `;
     input.value = oldValue || '';
@@ -5756,11 +5760,13 @@ function openExpenseAddModal() {
           <select id="expenseCategory" required>
             <option value="">선택</option>
             <option value="월구독">월구독</option>
+            <option value="년구독">년구독</option>
             <option value="구입">구입</option>
             <option value="월세">월세</option>
             <option value="공과금">공과금</option>
             <option value="보험">보험</option>
             <option value="급여">급여</option>
+            <option value="교육비">교육비</option>
             <option value="기타">기타</option>
           </select>
         </div>
