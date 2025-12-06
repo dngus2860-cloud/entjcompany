@@ -104,12 +104,12 @@
 
   .table-wrap{width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch}
   table{width:100%; border-collapse:collapse}
-  thead th{position:sticky; top:0; background:linear-gradient(135deg, rgba(99,102,241,.08), rgba(139,92,246,.08)); border-bottom:2px solid var(--primary); padding:18px 14px; font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--primary-light); white-space:nowrap; text-align:left}
+  thead th{position:sticky; top:0; background:linear-gradient(135deg, rgba(99,102,241,.08), rgba(139,92,246,.08)); border-bottom:2px solid var(--primary); padding:18px 14px; font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--primary-light); white-space:nowrap; text-align:left}
   thead th.num{text-align:right}
   thead th.center{text-align:center}
   tbody tr{transition:all .2s; border-bottom:1px solid var(--border)}
   tbody tr:hover{background:rgba(99,102,241,.08); transform:scale(1.001)}
-  td{padding:18px 14px; font-size:14px; vertical-align:middle; text-align:left; line-height:1.6}
+  td{padding:18px 14px; font-size:15px; vertical-align:middle; text-align:left; line-height:1.6}
   td.num{text-align:right; font-variant-numeric:tabular-nums; font-weight:600}
   td.center{text-align:center}
   td.nowrap{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:280px}
@@ -600,7 +600,7 @@
         <div class="fin-title">📍 플레이스 작업 <span class="fin-count" id="finPlaceCount"></span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th class="center" style="width:40px">↕</th><th class="center"><input type="checkbox" id="chkAllFinPlace"></th><th class="center">월별</th><th class="center">담당자</th><th>업체명</th><th>대표</th><th class="num">매출</th><th class="center">입금여부</th><th>작업기간</th><th class="num">작업비</th><th class="num">영업이익</th><th class="num">순이익율</th><th class="center">계약 상태</th><th>메모</th><th class="center">세금</th></tr></thead>
+            <thead><tr><th class="center" style="width:40px">↕</th><th class="center"><input type="checkbox" id="chkAllFinPlace"></th><th class="center">월별</th><th class="center">담당자</th><th>업체명</th><th>대표</th><th class="num">매출</th><th class="center">입금</th><th style="text-align:left">작업기간</th><th class="num">작업비</th><th class="num">영업이익</th><th class="num">순이익율</th><th class="center">계약 상태</th><th class="center">세금</th><th class="center">메모</th></tr></thead>
             <tbody id="finPlace"></tbody>
           </table>
         </div>
@@ -623,7 +623,7 @@
         <div class="fin-title">📝 블로그 작업 <span class="fin-count" id="finBlogCount"></span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th class="center" style="width:40px">↕</th><th class="center"><input type="checkbox" id="chkAllFinBlog"></th><th class="center">월별</th><th class="center">담당자</th><th>업체명</th><th>대표</th><th class="num">매출</th><th class="center">입금여부</th><th>작업기간</th><th class="num">작업비</th><th class="num">영업이익</th><th class="num">순이익율</th><th class="center">계약 상태</th><th>메모</th><th class="center">세금</th></tr></thead>
+            <thead><tr><th class="center" style="width:40px">↕</th><th class="center"><input type="checkbox" id="chkAllFinBlog"></th><th class="center">월별</th><th class="center">담당자</th><th>업체명</th><th>대표</th><th class="num">매출</th><th class="center">입금</th><th style="text-align:left">작업기간</th><th class="num">작업비</th><th class="num">영업이익</th><th class="num">순이익율</th><th class="center">계약 상태</th><th class="center">세금</th><th class="center">메모</th></tr></thead>
             <tbody id="finBlog"></tbody>
           </table>
         </div>
@@ -646,7 +646,7 @@
         <div class="fin-title">🎯 프로젝트 <span class="fin-count" id="finProjectCount"></span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th class="center" style="width:40px">↕</th><th class="center"><input type="checkbox" id="chkAllFinProject"></th><th class="center">월별</th><th class="center">담당자</th><th>업체명</th><th>대표</th><th class="num">매출</th><th class="center">입금여부</th><th>작업기간</th><th class="num">작업비</th><th class="num">영업이익</th><th class="num">순이익율</th><th class="center">계약 상태</th><th>메모</th><th class="center">세금</th></tr></thead>
+            <thead><tr><th class="center" style="width:40px">↕</th><th class="center"><input type="checkbox" id="chkAllFinProject"></th><th class="center">월별</th><th class="center">담당자</th><th>업체명</th><th>대표</th><th class="num">매출</th><th class="center">입금</th><th style="text-align:left">작업기간</th><th class="num">작업비</th><th class="num">영업이익</th><th class="num">순이익율</th><th class="center">계약 상태</th><th class="center">세금</th><th class="center">메모</th></tr></thead>
             <tbody id="finProject"></tbody>
           </table>
         </div>
@@ -957,6 +957,16 @@ const toISO = d => { if(!d)return''; const z=new Date(d); return new Date(z - z.
 const today = () => toISO(new Date());
 const getYearMonth = d => { const date=new Date(d); return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`; };
 
+// 월별 형식 축약: YYYY-MM → YY-MM
+const formatMonthShort = (monthStr) => {
+  if (!monthStr || !monthStr.includes('-')) return monthStr;
+  const parts = monthStr.split('-');
+  if (parts.length !== 2) return monthStr;
+  const year = parts[0].slice(2); // YY
+  const month = parts[1]; // MM
+  return `${year}-${month}`;
+};
+
 const getDDay = (endDate) => {
   if (!endDate) return null;
   const end = new Date(endDate);
@@ -977,6 +987,17 @@ const getDDayBadge = (endDate) => {
   if (dday <= 3) return `<span class="d-day-badge d-3">D-${dday}</span>`;
   if (dday <= 7) return `<span class="d-day-badge d-7">D-${dday}</span>`;
   return '';
+};
+
+// 날짜 형식 변환: YYYY-MM-DD → YY.MM.DD
+const formatDateShort = (dateStr) => {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  const year = parts[0].slice(2); // YY
+  const month = parts[1]; // MM
+  const day = parts[2]; // DD
+  return `${year}.${month}.${day}`;
 };
 
 const getRowClass = (endDate) => {
@@ -1029,7 +1050,7 @@ const CONFIGS = {
       {key:'product', label:'상품', type:'text'},
       {key:'category', label:'구분', type:'select', options:['트래픽','저장','길찾기','영수증']},
       {key:'client', label:'업체명', type:'text', required:true},
-      {key:'mid', label:'Mid', type:'url'},
+      {key:'mid', label:'Mid', type:'url', hideInTable:true},
       {key:'keywords', label:'키워드', type:'text'},
       {key:'workPeriod', label:'작업기간', type:'dateRange'},
       {key:'units', label:'일타', type:'number'},
@@ -1037,14 +1058,14 @@ const CONFIGS = {
       {key:'unitPrice', label:'단가', type:'number'},
       {key:'totalQty', label:'총량', type:'computed'},
       {key:'cost', label:'작업비', type:'computed'},
-      {key:'tax', label:'입금', type:'select', options:['입금완료','미완료']},
+      {key:'tax', label:'입금', type:'select', options:['완료','미완료']},
       {key:'note', label:'비고', type:'text'}
     ],
     distributionFields: [
       {key:'manager', label:'담당자', type:'select', options:['전병황', '강태우', '오영은', '김하늬', '김우현', '공민경']},
       {key:'product', label:'상품', type:'text'},
       {key:'client', label:'업체명', type:'text', required:true},
-      {key:'url', label:'URL', type:'url'},
+      {key:'url', label:'URL', type:'url', hideInTable:true},
       {key:'realName', label:'실/비', type:'select', options:['실명','비실명']},
       {key:'category', label:'구분', type:'select', options:['정보성','후기성']},
       {key:'totalQty', label:'총수량', type:'number', width:'70px'},
@@ -1053,7 +1074,7 @@ const CONFIGS = {
       {key:'keywords', label:'키워드', type:'text'},
       {key:'workPeriod', label:'작업기간', type:'dateRange'},
       {key:'cost', label:'작업비', type:'computed'},
-      {key:'tax', label:'입금', type:'select', options:['입금완료','미완료']},
+      {key:'tax', label:'입금', type:'select', options:['완료','미완료']},
       {key:'note', label:'비고', type:'text'}
     ],
     get fields() {
@@ -1070,13 +1091,13 @@ const CONFIGS = {
       {key:'author', label:'작가', type:'text'},
       {key:'category', label:'구분', type:'select', options:['블로그리뷰','단순배포','건바이','월보장','일반형','프리미엄형']},
       {key:'client', label:'업체명', type:'text', required:true},
-      {key:'mid', label:'Mid', type:'url'},
+      {key:'mid', label:'Mid', type:'url', hideInTable:true},
       {key:'keywords', label:'키워드', type:'text'},
       {key:'workPeriod', label:'작업기간', type:'dateRange'},
       {key:'totalQty', label:'총량', type:'number'},
       {key:'unitPrice', label:'단가', type:'number'},
       {key:'cost', label:'작업비', type:'computed'},
-      {key:'tax', label:'입금', type:'select', options:['입금완료','미완료']},
+      {key:'tax', label:'입금', type:'select', options:['완료','미완료']},
       {key:'note', label:'비고', type:'text'}
     ]
   },
@@ -1852,9 +1873,11 @@ function renderFilters() {
         <label class="filter-label">💳 세금계산서</label>
         <select id="ftax">
           <option value="all" ${!f.tax||f.tax==='all'?'selected':''}>전체</option>
-          <option value="completed" ${f.tax==='completed'?'selected':''}>발행완료</option>
-          <option value="yes" ${f.tax==='yes'?'selected':''}>발행</option>
-          <option value="no" ${f.tax==='no'?'selected':''}>미발행</option>
+          <option value="완료" ${f.tax==='완료'?'selected':''}>완료</option>
+          <option value="발행" ${f.tax==='발행'?'selected':''}>발행</option>
+          <option value="미발행" ${f.tax==='미발행'?'selected':''}>미발행</option>
+          <option value="크몽" ${f.tax==='크몽'?'selected':''}>크몽</option>
+          <option value="숨고" ${f.tax==='숨고'?'selected':''}>숨고</option>
         </select>
       </div>
     `;
@@ -2026,6 +2049,7 @@ function renderTable() {
   
   let h = '<tr><th class="center"><input type="checkbox" id="chkAll"></th>';
   config.fields.forEach(f => {
+    if (f.hideInTable) return; // 테이블에서 숨김 처리
     const widthStyle = f.width ? ` style="width:${f.width}"` : '';
     h += `<th class="${f.type === 'number' || f.type === 'computed' ? 'num' : ''}"${widthStyle}>${f.label}</th>`;
   });
@@ -2048,6 +2072,22 @@ function renderTable() {
     const tr = document.createElement('tr');
     const rowClass = getRowClass(row.endDate);
     if (rowClass) tr.className = rowClass;
+    
+    // 당일 등록된 항목인지 확인
+    if (row.createdAt) {
+      const createdDate = new Date(row.createdAt);
+      const today = new Date();
+      
+      // 날짜만 비교 (시간 제외)
+      createdDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      
+      if (createdDate.getTime() === today.getTime()) {
+        // 당일 등록된 항목에 연한 초록색 테두리 추가
+        tr.style.border = '2px solid rgba(34, 197, 94, 0.4)';
+        tr.style.borderLeft = '4px solid rgba(34, 197, 94, 0.6)';
+      }
+    }
     
     
     const td0 = document.createElement('td');
@@ -2073,6 +2113,7 @@ function renderTable() {
     tr.appendChild(td0);
     
     config.fields.forEach(f => {
+      if (f.hideInTable) return; // 테이블에서 숨김 처리
       const td = document.createElement('td');
       if (f.type === 'computed') {
         if (f.key === 'totalQty') {
@@ -2155,11 +2196,15 @@ function renderTable() {
         const badge = getDDayBadge(row.endDate);
         
         if (startDate && endDate) {
-          td.innerHTML = `${startDate}~${endDate} ${badge}`;
+          const startShort = formatDateShort(startDate);
+          const endShort = formatDateShort(endDate);
+          td.innerHTML = `<div style="display:flex; align-items:center; gap:8px;"><div style="line-height:1.4;">${startShort}<br>${endShort}</div>${badge}</div>`;
         } else if (startDate) {
-          td.innerHTML = `${startDate}~ ${badge}`;
+          const startShort = formatDateShort(startDate);
+          td.innerHTML = `<div style="display:flex; align-items:center; gap:8px;"><div style="line-height:1.4;">${startShort}<br>~</div>${badge}</div>`;
         } else if (endDate) {
-          td.innerHTML = `~${endDate} ${badge}`;
+          const endShort = formatDateShort(endDate);
+          td.innerHTML = `<div style="display:flex; align-items:center; gap:8px;"><div style="line-height:1.4;">~<br>${endShort}</div>${badge}</div>`;
         } else {
           td.textContent = '기간 설정';
           td.style.color = 'var(--muted)';
@@ -2199,43 +2244,74 @@ function renderTable() {
       } else if (f.key === 'note') {
         const noteValue = row[f.key] || '';
         
-        // 플레이스 작업인지 확인
-        const isPlace = state.currentType === 'place';
-        
-        if (isPlace) {
-          // 플레이스 작업은 메모 버튼 없이 텍스트만 표시
-          td.textContent = noteValue;
-          td.style.cursor = 'pointer';
-          td.addEventListener('click', () => startEdit(td, row, f));
-        } else {
-          // 다른 작업은 메모 버튼 포함
-          const wrapper = document.createElement('div');
-          wrapper.style.display = 'flex';
-          wrapper.style.gap = '8px';
-          wrapper.style.alignItems = 'center';
-          
-          const noteSpan = document.createElement('span');
-          noteSpan.textContent = noteValue.length > 20 ? noteValue.substring(0, 20) + '...' : (noteValue || '');
-          noteSpan.style.flex = '1';
-          noteSpan.style.cursor = 'pointer';
-          noteSpan.addEventListener('click', () => startEdit(td, row, f));
-          
-          const memoBtn = document.createElement('button');
-          memoBtn.className = 'btn mini';
-          memoBtn.textContent = '📝 메모';
-          memoBtn.addEventListener('click', (e) => {
+        // 블로그는 버튼으로만 표시
+        if (state.currentType === 'blog') {
+          const btn = document.createElement('button');
+          btn.className = 'btn mini';
+          btn.textContent = noteValue ? '📝 비고' : '➕ 비고';
+          btn.style.whiteSpace = 'nowrap';
+          btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            openMemoModal(row, state.currentType);
+            openNoteModal(row, state.currentType);
           });
+          td.appendChild(btn);
+          td.style.textAlign = 'center';
+        } else {
+          // 플레이스와 프로젝트는 텍스트 미리보기
+          if (noteValue.length > 30) {
+            td.textContent = noteValue.substring(0, 30) + '...';
+          } else {
+            td.textContent = noteValue || '';
+          }
           
-          wrapper.appendChild(noteSpan);
-          wrapper.appendChild(memoBtn);
-          td.appendChild(wrapper);
+          td.style.cursor = 'pointer';
+          td.style.whiteSpace = 'nowrap';
+          td.style.overflow = 'hidden';
+          td.style.textOverflow = 'ellipsis';
+          td.style.maxWidth = '200px';
+          
+          // 클릭 시 모달 열기
+          td.addEventListener('click', () => {
+            openNoteModal(row, state.currentType);
+          });
         }
       } else {
-        td.textContent = row[f.key] ?? '';
-        td.style.cursor = 'pointer';
-        td.addEventListener('click', () => startEdit(td, row, f));
+        // 업체명(client) 필드이고 플레이스 또는 블로그이면 URL 링크 추가
+        if (f.key === 'client' && (state.currentType === 'place' || state.currentType === 'blog')) {
+          const clientName = row[f.key] || '';
+          const urlValue = row.mid || row.url || '';
+          
+          if (clientName && urlValue) {
+            const link = document.createElement('a');
+            link.textContent = clientName;
+            link.href = urlValue.startsWith('http://') || urlValue.startsWith('https://') ? urlValue : 'https://' + urlValue;
+            link.target = '_blank';
+            link.style.color = 'var(--primary-light)';
+            link.style.textDecoration = 'underline';
+            link.style.cursor = 'pointer';
+            link.addEventListener('click', (e) => {
+              e.stopPropagation();
+            });
+            td.appendChild(link);
+            
+            // 편집을 위한 이벤트는 td에 추가
+            td.style.cursor = 'pointer';
+            td.addEventListener('click', (e) => {
+              // 링크 클릭이 아닌 경우에만 편집
+              if (e.target !== link) {
+                startEdit(td, row, f);
+              }
+            });
+          } else {
+            td.textContent = clientName || '';
+            td.style.cursor = 'pointer';
+            td.addEventListener('click', () => startEdit(td, row, f));
+          }
+        } else {
+          td.textContent = row[f.key] ?? '';
+          td.style.cursor = 'pointer';
+          td.addEventListener('click', () => startEdit(td, row, f));
+        }
       }
       tr.appendChild(td);
     });
@@ -2569,6 +2645,69 @@ function openMemoModal(row, type) {
   content.querySelector('#saveMemo').addEventListener('click', () => {
     row.clientMemo = textarea.value;
     saveData(row, type);
+    closeModal();
+    render();
+  });
+  
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+}
+
+function openNoteModal(row, type) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-back active';
+  
+  const content = document.createElement('div');
+  content.className = 'modal';
+  content.style.maxWidth = '700px';
+  
+  const currentNote = row.note || '';
+  
+  content.innerHTML = `
+    <div class="mh">
+      <strong>📝 비고</strong>
+      <button class="btn small outline" id="closeNoteModal">✕ 닫기</button>
+    </div>
+    <div class="mb">
+      <div style="margin-bottom:12px">
+        <strong style="color:var(--primary-light)">${row.client || '업체명 없음'}</strong>
+      </div>
+      <textarea id="noteContent" style="width:100%; min-height:250px; padding:16px; border:2px solid var(--border); border-radius:12px; background:var(--card); color:var(--text); font-size:15px; font-family:inherit; line-height:1.6; resize:vertical">${currentNote}</textarea>
+      <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:16px">
+        <button class="btn outline" id="cancelNote">취소</button>
+        <button class="btn" id="saveNote">저장</button>
+      </div>
+    </div>
+  `;
+  
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+  
+  const textarea = content.querySelector('#noteContent');
+  textarea.focus();
+  
+  const closeModal = () => {
+    if(document.body.contains(modal)) document.body.removeChild(modal);
+  };
+  
+  content.querySelector('#closeNoteModal').addEventListener('click', closeModal);
+  content.querySelector('#cancelNote').addEventListener('click', closeModal);
+  
+  content.querySelector('#saveNote').addEventListener('click', async () => {
+    row.note = textarea.value;
+    
+    // Firebase 저장
+    if (row.id) {
+      try {
+        await firebase.database().ref(`${CONFIGS[type].path}/${row.id}`).update({
+          note: row.note
+        });
+      } catch (err) {
+        console.error('Failed to update note:', err);
+      }
+    }
+    
     closeModal();
     render();
   });
@@ -3194,16 +3333,24 @@ function renderFinanceTable(type) {
   rows.forEach((row, rowIndex) => {
     const profitClass = (row.profit || 0) >= 0 ? 'positive' : 'negative';
     
-    // 작업기간에서 종료일 추출
+    // 작업기간에서 종료일 추출 및 세로 표시 준비
     let endDate = null;
-    let periodDisplay = row.period || '';
+    let periodDisplay = '';
     let ddayBadge = '';
     let rowClass = '';
     let periodClass = '';
     
     if (row.period && row.period.includes('~')) {
       const parts = row.period.split('~');
+      const startDate = parts[0]?.trim();
       endDate = parts[1]?.trim();
+      
+      // 날짜 형식 변환 (YY.MM.DD)
+      const startShort = formatDateShort(startDate);
+      const endShort = formatDateShort(endDate);
+      
+      // 세로로 표시 - 왼쪽 정렬
+      periodDisplay = `<div style="line-height:1.5; text-align:left; min-width:65px;">${startShort}<br>${endShort}</div>`;
       
       if (endDate) {
         ddayBadge = getDDayBadge(endDate);
@@ -3214,6 +3361,10 @@ function renderFinanceTable(type) {
           periodClass = dday === 0 || dday < 0 ? 'deadline-cell urgent' : 'deadline-cell warning';
         }
       }
+    } else if (row.period) {
+      // 단일 날짜만 있는 경우
+      const dateShort = formatDateShort(row.period);
+      periodDisplay = dateShort;
     }
     
     const tr = document.createElement('tr');
@@ -3231,13 +3382,17 @@ function renderFinanceTable(type) {
     tr.innerHTML = `
       <td class="center" style="width:40px"><span class="drag-handle">☰</span></td>
       <td class="center"><input type="checkbox" class="fin-check" data-type="${type}" data-id="${row.id}"></td>
-      <td class="fin-cell center" data-type="${type}" data-id="${row.id}" data-field="month">${row.month || ''}</td>
+      <td class="fin-cell center" data-type="${type}" data-id="${row.id}" data-field="month">${formatMonthShort(row.month) || ''}</td>
       <td class="fin-cell center" data-type="${type}" data-id="${row.id}" data-field="manager">${row.manager || ''}</td>
       <td class="fin-cell nowrap" data-type="${type}" data-id="${row.id}" data-field="client">${row.client || ''}</td>
       <td class="fin-cell" data-type="${type}" data-id="${row.id}" data-field="owner">${row.owner || ''}</td>
       <td class="fin-cell num revenue-cell" data-type="${type}" data-id="${row.id}" data-field="revenue">${fmtMoney(row.revenue || 0)}</td>
       <td class="fin-cell center" data-type="${type}" data-id="${row.id}" data-field="paid">${row.paid || '미입금'}</td>
-      <td class="fin-cell ${periodClass}" data-type="${type}" data-id="${row.id}" data-field="period">${periodDisplay}${ddayBadge}</td>
+      <td class="fin-cell center ${periodClass}" data-type="${type}" data-id="${row.id}" data-field="period">
+        <div style="display:flex; align-items:center; gap:6px; justify-content:flex-start;">
+          ${periodDisplay}${ddayBadge}
+        </div>
+      </td>
       <td class="fin-cell num cost-cell" data-type="${type}" data-id="${row.id}" data-field="cost">${fmtMoney(row.cost || 0)}</td>
       <td class="fin-cell num profit-cell ${profitClass}" data-type="${type}" data-id="${row.id}" data-field="profit">${fmtMoney(row.profit || 0)}</td>
       <td class="fin-cell num rate-cell" data-type="${type}" data-id="${row.id}" data-field="profitRate">${profitRate}%</td>
@@ -3246,10 +3401,10 @@ function renderFinanceTable(type) {
         <option value="대기중" ${(row.contractStatus || '') === '대기중' ? 'selected' : ''}>대기중</option>
         <option value="계약종료" ${(row.contractStatus || '') === '계약종료' ? 'selected' : ''}>계약종료</option>
       </select></td>
-      <td class="fin-cell center" data-type="${type}" data-id="${row.id}" data-field="memo" title="${row.memo || '클릭하여 메모 작성'}" style="cursor:pointer; font-size:18px">
-        ${row.memo ? '📝' : '➕'}
-      </td>
       <td class="fin-cell center" data-type="${type}" data-id="${row.id}" data-field="tax">${row.tax || '미발행'}</td>
+      <td class="fin-cell center" data-type="${type}" data-id="${row.id}" data-field="memo" style="cursor:pointer;">
+        <button class="btn mini" style="white-space:nowrap;">${row.memo ? '📝' : '➕'}</button>
+      </td>
     `;
     tbody.appendChild(tr);
   });
@@ -3870,21 +4025,22 @@ function openFinBulkEditModal() {
           </select>
         </div>
         <div>
-          <label>입금여부</label>
+          <label>입금</label>
           <select id="bulkPaid">
             <option value="">변경 안 함</option>
-            <option value="미입금">미입금</option>
-            <option value="입금완료">입금완료</option>
-            <option value="일부입금">일부입금</option>
+            <option value="미완료">미완료</option>
+            <option value="완료">완료</option>
           </select>
         </div>
         <div>
           <label>세금</label>
           <select id="bulkTax">
             <option value="">변경 안 함</option>
-            <option value="발행완료">발행완료</option>
+            <option value="완료">완료</option>
             <option value="발행">발행</option>
             <option value="미발행">미발행</option>
+            <option value="크몽">크몽</option>
+            <option value="숨고">숨고</option>
           </select>
         </div>
         <div>
@@ -4248,11 +4404,10 @@ function openFinAddModal() {
           <input type="number" id="finRevenue" step="any" required value="0">
         </div>
         <div>
-          <label>입금여부</label>
+          <label>입금</label>
           <select id="finPaid">
-            <option value="미입금">미입금</option>
-            <option value="입금완료">입금완료</option>
-            <option value="일부입금">일부입금</option>
+            <option value="미완료">미완료</option>
+            <option value="완료">완료</option>
           </select>
         </div>
         <div>
@@ -4408,17 +4563,18 @@ function startFinEdit(cell, type, id, field) {
   } else if (field === 'paid') {
     input = document.createElement('select');
     input.innerHTML = `
-      <option value="미입금">미입금</option>
-      <option value="입금완료">입금완료</option>
-      <option value="일부입금">일부입금</option>
+      <option value="미완료">미완료</option>
+      <option value="완료">완료</option>
     `;
-    input.value = oldValue || '미입금';
+    input.value = oldValue || '미완료';
   } else if (field === 'tax') {
     input = document.createElement('select');
     input.innerHTML = `
-      <option value="발행완료">발행완료</option>
+      <option value="완료">완료</option>
       <option value="발행">발행</option>
       <option value="미발행">미발행</option>
+      <option value="크몽">크몽</option>
+      <option value="숨고">숨고</option>
     `;
     input.value = oldValue || '미발행';
   } else if (field === 'month') {
@@ -5334,7 +5490,9 @@ function renderExpenseTable() {
       <td class="fin-cell nowrap" data-id="${row.id}" data-field="itemName">${row.itemName || ''}</td>
       <td class="fin-cell num cost-cell" data-id="${row.id}" data-field="amount">${fmtMoney(row.amount || 0)}</td>
       <td class="fin-cell center" data-id="${row.id}" data-field="paymentMethod">${row.paymentMethod || ''}</td>
-      <td class="fin-cell" data-id="${row.id}" data-field="memo">${row.memo || ''}</td>
+      <td class="fin-cell center" data-id="${row.id}" data-field="memo" style="cursor:pointer;">
+        <button class="btn mini" style="white-space:nowrap;">${row.memo ? '📝 메모' : '➕메모'}</button>
+      </td>
     `;
     tbody.appendChild(tr);
   });
@@ -5656,6 +5814,12 @@ function startExpenseEdit(cell, id, field) {
   const row = state.expenseData.find(r => r.id === id);
   if (!row) return;
   
+  // memo 필드는 모달로 처리
+  if (field === 'memo') {
+    openExpenseMemoModal(row);
+    return;
+  }
+  
   const oldValue = row[field];
   let input;
   
@@ -5732,6 +5896,69 @@ function startExpenseEdit(cell, id, field) {
   });
   
   input.addEventListener('blur', commit);
+}
+
+function openExpenseMemoModal(row) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-back active';
+  
+  const content = document.createElement('div');
+  content.className = 'modal';
+  content.style.maxWidth = '700px';
+  
+  const currentMemo = row.memo || '';
+  
+  content.innerHTML = `
+    <div class="mh">
+      <strong>📝 메모</strong>
+      <button class="btn small outline" id="closeExpenseMemoModal">✕ 닫기</button>
+    </div>
+    <div class="mb">
+      <div style="margin-bottom:12px">
+        <strong style="color:var(--primary-light)">${row.itemName || '항목명 없음'}</strong>
+      </div>
+      <textarea id="expenseMemoContent" style="width:100%; min-height:250px; padding:16px; border:2px solid var(--border); border-radius:12px; background:var(--card); color:var(--text); font-size:15px; font-family:inherit; line-height:1.6; resize:vertical">${currentMemo}</textarea>
+      <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:16px">
+        <button class="btn outline" id="cancelExpenseMemo">취소</button>
+        <button class="btn" id="saveExpenseMemo">저장</button>
+      </div>
+    </div>
+  `;
+  
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+  
+  const textarea = content.querySelector('#expenseMemoContent');
+  textarea.focus();
+  
+  const closeModal = () => {
+    if(document.body.contains(modal)) document.body.removeChild(modal);
+  };
+  
+  content.querySelector('#closeExpenseMemoModal').addEventListener('click', closeModal);
+  content.querySelector('#cancelExpenseMemo').addEventListener('click', closeModal);
+  
+  content.querySelector('#saveExpenseMemo').addEventListener('click', async () => {
+    row.memo = textarea.value;
+    
+    // Firebase 저장
+    if (row.id) {
+      try {
+        await firebase.database().ref(`expenses/${row.id}`).update({
+          memo: row.memo
+        });
+      } catch (err) {
+        console.error('Failed to update expense memo:', err);
+      }
+    }
+    
+    closeModal();
+    renderExpenses();
+  });
+  
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
 }
 
 function openExpenseAddModal() {
